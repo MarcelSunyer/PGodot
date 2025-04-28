@@ -1,7 +1,12 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,11 +14,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "TerrainGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainGenerator.cs",
+              "RelativeDocumentMoniker": "TerrainGenerator.cs",
+              "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainGenerator.cs",
+              "RelativeToolTip": "TerrainGenerator.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAowDMAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T10:04:20.015Z",
+              "EditorCaption": ""
             }
           ]
         }
