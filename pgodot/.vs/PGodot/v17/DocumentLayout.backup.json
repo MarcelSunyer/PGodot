@@ -3,12 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\node3d_test.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:node3d_test.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\pgodot.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
-      "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:pgodot.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+      "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,7 +14,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -26,27 +22,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "PGodot",
-              "DocumentMoniker": "C:\\USERS\\MARCE\\DOCUMENTS\\GITHUB\\PGODOT\\PGODOT\\PGodot.csproj",
-              "RelativeDocumentMoniker": "PGodot.csproj",
-              "ToolTip": "C:\\USERS\\MARCE\\DOCUMENTS\\GITHUB\\PGODOT\\PGODOT\\PGodot.csproj",
-              "RelativeToolTip": "PGodot.csproj",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-04-27T21:21:15.509Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Node3d_Test.cs",
-              "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\Node3d_Test.cs",
-              "RelativeDocumentMoniker": "Node3d_Test.cs",
-              "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\Node3d_Test.cs",
-              "RelativeToolTip": "Node3d_Test.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAgwB4AAAAbAAAAAAAAAA==",
+              "Title": "TerrainGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainGenerator.cs",
+              "RelativeDocumentMoniker": "TerrainGenerator.cs",
+              "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainGenerator.cs",
+              "RelativeToolTip": "TerrainGenerator.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAgwC0AAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-04-27T21:18:48.206Z",
+              "WhenOpened": "2025-04-28T09:24:54.234Z",
               "EditorCaption": ""
             }
           ]
