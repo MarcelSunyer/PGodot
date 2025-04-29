@@ -1,5 +1,6 @@
-[gd_scene load_steps=8 format=3 uid="uid://bvoaa0lg7fxao"]
+[gd_scene load_steps=10 format=3 uid="uid://bvoaa0lg7fxao"]
 
+[ext_resource type="Script" uid="uid://dkidfbuy5g0gm" path="res://TerrainGenerator.cs" id="1_a202f"]
 [ext_resource type="Texture2D" uid="uid://dsvavsywoin2j" path="res://SkyBox/autumn_field_puresky_4k.exr" id="1_noarx"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_a0tk4"]
@@ -18,7 +19,10 @@ sky = SubResource("Sky_r3fl7")
 
 [sub_resource type="Compositor" id="Compositor_wc5p8"]
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_a202f"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_noarx"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_a0tk4"]
+seed = 11
 
 [node name="Node3D" type="Node3D"]
 
@@ -32,5 +36,7 @@ camera_attributes = SubResource("CameraAttributesPractical_i5arm")
 compositor = SubResource("Compositor_wc5p8")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(0.999997, 0.00186836, -0.001285, -0.00186799, 0.999998, 0.000293665, 0.00128555, -0.000291256, 0.999999, -0.0102272, 17.113, 0)
-mesh = SubResource("PlaneMesh_a202f")
+transform = Transform3D(0.999997, 0.00186836, -0.001285, -0.00186799, 0.999998, 0.000293665, 0.00128555, -0.000291256, 0.999999, -0.0109103, 15.622, -0.161571)
+mesh = SubResource("ArrayMesh_noarx")
+script = ExtResource("1_a202f")
+Noise = SubResource("FastNoiseLite_a0tk4")
