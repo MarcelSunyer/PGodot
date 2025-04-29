@@ -1,6 +1,7 @@
 ﻿using Godot;
 using System;
 
+
 [Tool]
 public partial class TerrainGenerator : MeshInstance3D
 {
@@ -9,6 +10,8 @@ public partial class TerrainGenerator : MeshInstance3D
     public int _resolution = 1;
 
     public FastNoiseLite _noise;
+
+    [Export] public float NoiseFrequency { get; set; } = 0.1f;
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
     public int Height
@@ -21,6 +24,8 @@ public partial class TerrainGenerator : MeshInstance3D
                 UpdateMesh();
         }
     }
+    [Export] 
+    public float Frequency { get; set; } = 0.1f;
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
     public int Size
@@ -33,6 +38,7 @@ public partial class TerrainGenerator : MeshInstance3D
                 UpdateMesh();
         }
     }
+    [Export]
     public FastNoiseLite Noise
     {
         get => _noise;
@@ -57,6 +63,7 @@ public partial class TerrainGenerator : MeshInstance3D
             {
                 _noise.Changed += UpdateMesh;
             }
+            UpdateMesh();
         }
     }
     [Export(PropertyHint.Range, "0,256,1")]
@@ -72,27 +79,13 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    public override void _Ready()
+    public float GetHeight(float x, float z)
     {
-        if (Engine.IsEditorHint())
-            SetProcess(true);
-
         if (_noise == null)
-        {
-            _noise = new FastNoiseLite();
-        }
+            return 0f;
 
-        UpdateMesh();
-    }
-
-    public override void _Process(double delta)
-    {
-        
-    }
-
-    public float GetHeight(float x, float y)
-    {
-        return _noise.GetNoise2D(x, y) * _height;
+        // Escala las coordenadas y aplica el ruido
+        return _noise.GetNoise2D(x * NoiseFrequency, z * NoiseFrequency) * _height;
     }
 
     public Vector3 GetNormal(float x, float y)
@@ -105,51 +98,43 @@ public partial class TerrainGenerator : MeshInstance3D
         Vector3 normal = new Vector3(-dx, 1.0f, -dy);
         return normal.Normalized();
     }
-
+    public override void _Ready()
+    {
+        if (Engine.IsEditorHint())
+            UpdateMesh(); // Forzar actualización en el editor
+    }
     public void UpdateMesh()
     {
+        if (_noise == null)
+        {
+            GD.PrintErr("¡FastNoiseLite no está asignado!");
+            return;
+        }
+
         var planeMesh = new PlaneMesh
         {
-            SubdivideDepth = Resolution,
-            SubdivideWidth = Resolution,
-            Size = new Vector2(Size, Size)
+            Size = new Vector2(_size, _size),
+            SubdivideDepth = _resolution,
+            SubdivideWidth = _resolution
         };
 
-        // Bake into an ArrayMesh
-        var planeArrays = planeMesh.GetMeshArrays();
-        //var vertexArray = (PackedVector3Array)planeArrays[(int)ArrayMesh.ArrayType.Vertex]; 
-        //var normalArray = (PackedVector3Array) planeArrays[(int)ArrayMesh.ArrayType.Normal];
-        //var tangentArray = (PackedFloat32Array)planeArrays[(int)ArrayMesh.ArrayType.Tangent];
+        var meshArrays = planeMesh.GetMeshArrays();
+        Vector3[] vertices = (Vector3[])meshArrays[(int)ArrayMesh.ArrayType.Vertex];
 
-        //for (int i = 0; i < vertexArray.size(); i++)
-        //{
-        //    Vector3 vertex = vertexArray[i];
-        //    Vector3 normal = Vector3.Up;
-        //    Vector3 tangent = Vector3.Right;
+        // Modificar la altura de los vértices
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            Vector3 vertex = vertices[i];
+            vertex.Y = GetHeight(vertex.X, vertex.Z);
+            vertices[i] = vertex;
+        }
 
-        //    if(_noise != null)
-        //    {
-        //        vertex.Y = vertexArray[i];
-        //        normal = GetNormal(vertex.X, vertex.Y);
-        //        tangent = normal.Cross(Vector3.Up);
-        //    }
-        //    vertexArray[i] = vertex;
-        //    normalArray[i] = normal;
-        //    tangentArray[4 * i] = tangent.X;
-        //    tangentArray[4 * i + 1] = tangent.Y;
-        //    tangentArray[4 * i + 2] = tangent.Z;
-        //}
+        // Actualizar el array de vértices
+        meshArrays[(int)ArrayMesh.ArrayType.Vertex] = vertices;
 
+        // Crear el nuevo mesh
         var arrayMesh = new ArrayMesh();
-        Godot.Collections.Array arrays = new Godot.Collections.Array();
-        //arrays.Add(vertexArray);
-        //arrays.Add(normalArray);
-        //arrays.Add(tangentArray); 
-        arrays.Add(planeArrays[(int)ArrayMesh.ArrayType.TexUV]); 
-
-        arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
-
-        // Assign it
+        arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshArrays);
         Mesh = arrayMesh;
     }
 }
