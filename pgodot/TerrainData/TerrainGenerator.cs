@@ -11,6 +11,7 @@ public partial class TerrainGenerator : MeshInstance3D
 
     public FastNoiseLite _noise;
 
+    public CollisionShape3D _collisionShape;
     [Export] public float NoiseFrequency { get; set; } = 0.1f;
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
@@ -61,9 +62,9 @@ public partial class TerrainGenerator : MeshInstance3D
 
             if (_noise != null && !_noise.IsConnected("changed", Callable.From(UpdateMesh)))
             {
-                _noise.Changed += UpdateMesh;
+                _noise.Changed += UpdateMesh; 
+
             }
-            UpdateMesh();
         }
     }
     [Export(PropertyHint.Range, "0,256,1")]
@@ -136,5 +137,18 @@ public partial class TerrainGenerator : MeshInstance3D
         var arrayMesh = new ArrayMesh();
         arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshArrays);
         Mesh = arrayMesh;
+
+        foreach (Node child in GetChildren())
+        {
+            if (child is StaticBody3D)
+                RemoveChild(child); // Quitar del árbol de nodos
+
+            // También opcionalmente liberar el nodo
+            child.QueueFree();
+        }
+
+        // Crear nueva colisión
+        this.CreateTrimeshCollision();
     }
+
 }
