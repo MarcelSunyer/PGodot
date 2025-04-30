@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=3 uid="uid://dpmtj2rpuxfke"]
+
+[ext_resource type="Script" uid="uid://dbrnfcwtq2i4g" path="res://Controller 3D/PlayerCharacter.cs" id="1_evjmn"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_m71im"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6vbpe"]
+radius = 0.179718
+height = 0.675467
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_ob5p8"]
+top_radius = 0.0
+bottom_radius = 0.3
+height = 2.99
+radial_segments = 59
+rings = 2
+
+[node name="PlayerController3d" type="Node3D"]
+
+[node name="PlayerCharacter" type="CharacterBody3D" parent="."]
+script = ExtResource("1_evjmn")
+Speed = 3.0
+Acceleration = 5.0
+RotationSpeed = 3.0
+JumpVelocity = 6.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="PlayerCharacter"]
+transform = Transform3D(0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0)
+mesh = SubResource("CapsuleMesh_m71im")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PlayerCharacter"]
+shape = SubResource("CapsuleShape3D_6vbpe")
+
+[node name="Nose" type="MeshInstance3D" parent="PlayerCharacter"]
+transform = Transform3D(0.3, 0, 0, 0, -4.19001e-09, -0.3, 0, 0.0958563, -1.31134e-08, 0, 0.111976, -0.143776)
+mesh = SubResource("CylinderMesh_ob5p8")
+
+[node name="Camera3D" type="Camera3D" parent="PlayerCharacter"]
+transform = Transform3D(1, 0, 0, 0, 0.973611, 0.228215, 0, -0.228215, 0.973611, 0, 0.644724, 0.65258)

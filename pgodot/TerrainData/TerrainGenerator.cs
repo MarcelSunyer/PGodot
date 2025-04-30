@@ -12,9 +12,12 @@ public partial class TerrainGenerator : MeshInstance3D
     public FastNoiseLite _noise;
 
     public CollisionShape3D _collisionShape;
-    [Export] public float NoiseFrequency { get; set; } = 0.1f;
+    private Callable _updateMeshCallable;
+    [Export] 
+    public float NoiseFrequency { get; set; } = 0.1f;
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
+
     public int Height
     {
         get => _height;
@@ -99,16 +102,10 @@ public partial class TerrainGenerator : MeshInstance3D
         Vector3 normal = new Vector3(-dx, 1.0f, -dy);
         return normal.Normalized();
     }
-    public override void _Ready()
-    {
-        if (Engine.IsEditorHint())
-            UpdateMesh(); // Forzar actualización en el editor
-    }
     public void UpdateMesh()
     {
         if (_noise == null)
         {
-            GD.PrintErr("¡FastNoiseLite no está asignado!");
             return;
         }
 
