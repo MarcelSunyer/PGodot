@@ -13,10 +13,15 @@ public partial class TerrainGenerator : MeshInstance3D
 
     public CollisionShape3D _collisionShape;
     private Callable _updateMeshCallable;
+
+    [Export] 
+    public Vector2 ChunkOffset { get; set; } = Vector2.Zero;
+    
     [Export] 
     public float NoiseFrequency { get; set; } = 0.1f;
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
+
 
     public int Height
     {
@@ -88,20 +93,22 @@ public partial class TerrainGenerator : MeshInstance3D
         if (_noise == null)
             return 0f;
 
-        // Escala las coordenadas y aplica el ruido
-        return _noise.GetNoise2D(x * NoiseFrequency, z * NoiseFrequency) * _height;
+        // Apply chunk offset to noise sampling
+        float worldX = x + ChunkOffset.X;
+        float worldZ = z + ChunkOffset.Y;
+        return _noise.GetNoise2D(worldX * NoiseFrequency, worldZ * NoiseFrequency) * _height;
     }
 
-    public Vector3 GetNormal(float x, float y)
+    public Vector3 GetNormal(float x, float z)
     {
-        int epsilon = Mathf.Max(1, _size / (_resolution + 1)); 
+        int epsilon = Mathf.Max(1, _size / (_resolution + 1));
 
-        float dx = (GetHeight(x + epsilon, y) - GetHeight(x - epsilon, y)) / (2.0f * epsilon);
-        float dy = (GetHeight(x, y + epsilon) - GetHeight(x, y - epsilon)) / (2.0f * epsilon);
+        float dx = (GetHeight(x + epsilon, z) - GetHeight(x - epsilon, z)) / (2.0f * epsilon);
+        float dz = (GetHeight(x, z + epsilon) - GetHeight(x, z - epsilon)) / (2.0f * epsilon);
 
-        Vector3 normal = new Vector3(-dx, 1.0f, -dy);
+        Vector3 normal = new Vector3(-dx, 1.0f, -dz);
         return normal.Normalized();
-    }
+    }   
     public void UpdateMesh()
     {
         if (_noise == null)
@@ -118,13 +125,15 @@ public partial class TerrainGenerator : MeshInstance3D
 
         var meshArrays = planeMesh.GetMeshArrays();
         Vector3[] vertices = (Vector3[])meshArrays[(int)ArrayMesh.ArrayType.Vertex];
-
+        Vector3[] normals = new Vector3[vertices.Length];
         // Modificar la altura de los vértices
         for (int i = 0; i < vertices.Length; i++)
         {
             Vector3 vertex = vertices[i];
             vertex.Y = GetHeight(vertex.X, vertex.Z);
+            normals[i] = GetNormal(vertex.X, vertex.Z);
             vertices[i] = vertex;
+
         }
 
         // Actualizar el array de vértices

@@ -2,103 +2,109 @@
 using System;
 using System.Collections.Generic;
 
-public partial class EndlessTerrain : Node
+public partial class EndlessTerrain : Node3D
 {
-    [Export]
-    public TerrainGenerator TerrainGenerator;
-    [Export]
-    public Node3D Player; 
-    [Export]
-    public int ChunkSize = 32; // Debe coincidir con el Size del TerrainGenerator
-    [Export]
-    public int LoadDistance = 3; // Radio de chunks a cargar
+    [Export] public NodePath ViewerPath;
+    [Export] public int ViewDistance = 5;
+    [Export] public int ChunkSize = 32;
+    [Export] public float UpdateThreshold = 25.0f;
 
-    private Dictionary<Vector2I, TerrainGenerator> _activeChunks = new();
-    private Vector2I _lastPlayerChunkPos;
+    private Node3D _viewer;
+    private Vector2 _viewerPosition;
+    private Vector2 _lastViewerPosition;
+    private float _sqrUpdateThreshold;
+    private Dictionary<Vector2I, TerrainGenerator> _terrainChunks = new Dictionary<Vector2I, TerrainGenerator>();
+    private HashSet<Vector2I> _activeChunks = new HashSet<Vector2I>();
 
     public override void _Ready()
     {
-        if (Player == null)
-            GD.PrintErr("¡Jugador no asignado!");
-
-        UpdateTerrainChunks();
+        _viewer = GetNode<Node3D>(ViewerPath);
+        _sqrUpdateThreshold = UpdateThreshold * UpdateThreshold;
+        UpdateChunks();
     }
 
     public override void _Process(double delta)
     {
-        Vector2I currentChunkPos = GetCurrentChunkPosition();
-        if (currentChunkPos != _lastPlayerChunkPos)
+        _viewerPosition = new Vector2(_viewer.Position.X, _viewer.Position.Z);
+
+        if (_viewerPosition.DistanceSquaredTo(_lastViewerPosition) > _sqrUpdateThreshold)
         {
-            UpdateTerrainChunks();
-            _lastPlayerChunkPos = currentChunkPos;
+            _lastViewerPosition = _viewerPosition;
+            UpdateChunks();
         }
     }
 
-    private Vector2I GetCurrentChunkPosition()
+    private void UpdateChunks()
     {
-        Vector3 playerPos = Player.GlobalPosition;
-        return new Vector2I(
-            Mathf.FloorToInt(playerPos.X / ChunkSize),
-            Mathf.FloorToInt(playerPos.Z / ChunkSize)
+        // Determine current chunk coordinates
+        Vector2I currentChunkCoord = new Vector2I(
+            (int)Mathf.Floor(_viewerPosition.X / ChunkSize),
+            (int)Mathf.Floor(_viewerPosition.Y / ChunkSize)
         );
-    }
 
-    private void UpdateTerrainChunks()
-    {
-        Vector2I currentChunk = GetCurrentChunkPosition();
-        HashSet<Vector2I> chunksToKeep = new();
+        // Track chunks that need to be removed
+        HashSet<Vector2I> chunksToRemove = new HashSet<Vector2I>(_activeChunks);
+        _activeChunks.Clear();
 
-        // Generar nuevos chunks alrededor
-        for (int xOffset = -LoadDistance; xOffset <= LoadDistance; xOffset++)
+        // Create/update visible chunks
+        for (int yOffset = -ViewDistance; yOffset <= ViewDistance; yOffset++)
         {
-            for (int yOffset = -LoadDistance; yOffset <= LoadDistance; yOffset++)
+            for (int xOffset = -ViewDistance; xOffset <= ViewDistance; xOffset++)
             {
-                Vector2I chunkCoord = new(currentChunk.X + xOffset, currentChunk.Y + yOffset);
-                chunksToKeep.Add(chunkCoord);
+                Vector2I chunkCoord = new Vector2I(
+                    currentChunkCoord.X + xOffset,
+                    currentChunkCoord.Y + yOffset
+                );
 
-                if (!_activeChunks.ContainsKey(chunkCoord))
+                _activeChunks.Add(chunkCoord);
+
+                if (!_terrainChunks.ContainsKey(chunkCoord))
                 {
                     CreateChunk(chunkCoord);
+                }
+                else
+                {
+                    chunksToRemove.Remove(chunkCoord);
                 }
             }
         }
 
-        // Eliminar chunks lejanos
-        List<Vector2I> chunksToRemove = new();
-        foreach (var chunk in _activeChunks.Keys)
+        // Remove out-of-range chunks
+        foreach (Vector2I coord in chunksToRemove)
         {
-            if (!chunksToKeep.Contains(chunk))
+            if (_terrainChunks.TryGetValue(coord, out TerrainGenerator chunk))
             {
-                chunksToRemove.Add(chunk);
+                chunk.QueueFree();
+                _terrainChunks.Remove(coord);
             }
-        }
-
-        foreach (var chunk in chunksToRemove)
-        {
-            _activeChunks[chunk].QueueFree();
-            _activeChunks.Remove(chunk);
         }
     }
 
-    private void CreateChunk(Vector2I chunkCoord)
+    private void CreateChunk(Vector2I coord)
     {
-        // Instanciar nuevo chunk
-        TerrainGenerator newChunk = (TerrainGenerator)TerrainGenerator.Duplicate();
-        newChunk.Size = ChunkSize;
-        newChunk.Noise = TerrainGenerator.Noise;
-        newChunk.Height = TerrainGenerator.Height;
-        newChunk.Resolution = TerrainGenerator.Resolution;
+        var chunk = new TerrainGenerator();
 
-        // Posicionar el chunk
-        Vector3 position = new Vector3(
-            chunkCoord.X * ChunkSize,
+        // Configure chunk
+        chunk.ChunkOffset = new Vector2(coord.X * ChunkSize, coord.Y * ChunkSize);
+        chunk.Size = ChunkSize;
+        chunk.Position = new Vector3(
+            coord.X * ChunkSize,
             0,
-            chunkCoord.Y * ChunkSize
+            coord.Y * ChunkSize
         );
 
-        newChunk.GlobalPosition = position;
-        AddChild(newChunk);
-        _activeChunks.Add(chunkCoord, newChunk);
-        newChunk.UpdateMesh();
+        // Copy terrain settings from first chunk if needed
+        if (GetChildCount() > 0)
+        {
+            TerrainGenerator sample = GetChild<TerrainGenerator>(0);
+            chunk.Height = sample.Height;
+            chunk.Resolution = sample.Resolution;
+            chunk.NoiseFrequency = sample.NoiseFrequency;
+            chunk.Noise = sample.Noise.Duplicate() as FastNoiseLite;
+        }
+
+        AddChild(chunk);
+        chunk.UpdateMesh();
+        _terrainChunks[coord] = chunk;
     }
 }
