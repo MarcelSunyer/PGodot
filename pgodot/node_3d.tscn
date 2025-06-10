@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=4 uid="uid://bvoaa0lg7fxao"]
+[gd_scene load_steps=19 format=4 uid="uid://bvoaa0lg7fxao"]
 
 [ext_resource type="Script" uid="uid://dkidfbuy5g0gm" path="res://TerrainData/TerrainGenerator.cs" id="1_a202f"]
 [ext_resource type="Shader" uid="uid://c14o076oj8h88" path="res://TerrainData/terrain.gdshader" id="2_a0tk4"]
@@ -22,6 +22,11 @@ glow_enabled = true
 
 [sub_resource type="Compositor" id="Compositor_r3fl7"]
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wc5p8"]
+render_priority = 0
+shader = ExtResource("2_a0tk4")
+shader_parameter/height = 64.0
+
 [sub_resource type="Gradient" id="Gradient_a0tk4"]
 offsets = PackedFloat32Array(0, 0.139344, 0.237705, 0.442623, 0.811475)
 colors = PackedColorArray(0.054902, 0.0352941, 0.466667, 1, 0, 0.537255, 0.835294, 1, 0.101961, 0.635294, 0.172549, 1, 0.858824, 0.462745, 0.254902, 1, 0.12549, 0.188235, 0.231373, 1)
@@ -35,6 +40,11 @@ shader = ExtResource("2_a0tk4")
 shader_parameter/height = 64.0
 shader_parameter/colorGradient = SubResource("GradientTexture1D_r3fl7")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i5arm"]
+render_priority = 0
+shader = ExtResource("2_a0tk4")
+shader_parameter/height = 64.0
+
 [sub_resource type="ArrayMesh" id="ArrayMesh_r3fl7"]
 _surfaces = [{
 "aabb": AABB(-100, -14.6411, -100, 200, 37.1813, 200),
@@ -47,6 +57,11 @@ _surfaces = [{
 "vertex_count": 9,
 "vertex_data": PackedByteArray("AADIQir3cb8AAMhCAAAAAPJBasEAAMhCAADIwtwnL8EAAMhCAADIQhSz7kAAAAAAAAAAAD5StEEAAAAAAADIwp9oL0EAAAAAAADIQmxsZcEAAMjCAAAAAKnCAUEAAMjCAADIwjZEusAAAMjCAID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/")
 }]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jka67"]
+render_priority = 0
+shader = ExtResource("2_a0tk4")
+shader_parameter/height = 64.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_a0tk4"]
 seed = 1
@@ -79,13 +94,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0881, 43.2891, -11.0659)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 28.912, 0)
 script = ExtResource("4_jka67")
 ViewerPath = NodePath("../Player")
+TerrainShaderMaterial = SubResource("ShaderMaterial_wc5p8")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D"]
-transform = Transform3D(0.999818, 0.00174502, -0.0189706, -0.00174533, 0.999998, 0, 0.0189705, 3.31099e-05, 0.999819, -1.60351, -8.95615, 1.90161)
+transform = Transform3D(0.999818, 0.00174502, -0.0189706, -0.00252568, 0.999147, -0.0412056, 0.0188825, 0.0412461, 0.998969, -1.60351, -8.95615, 1.90161)
 visible = false
 material_override = SubResource("ShaderMaterial_r3fl7")
+material_overlay = SubResource("ShaderMaterial_i5arm")
 mesh = SubResource("ArrayMesh_r3fl7")
 skeleton = NodePath("../..")
+surface_material_override/0 = SubResource("ShaderMaterial_jka67")
 script = ExtResource("1_a202f")
 NoiseFrequency = 18.43
 Height = 50

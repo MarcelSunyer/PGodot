@@ -9,6 +9,9 @@ public partial class EndlessTerrain : Node3D
     [Export] public int ChunkSize = 32;
     [Export] public float UpdateThreshold = 25.0f;
 
+    [Export] // <--- Añade esta línea para exportar el ShaderMaterial
+    public ShaderMaterial TerrainShaderMaterial { get; set; }
+
     private Node3D _viewer;
     private Vector2 _viewerPosition;
     private Vector2 _lastViewerPosition;
@@ -36,17 +39,14 @@ public partial class EndlessTerrain : Node3D
 
     private void UpdateChunks()
     {
-        // Determine current chunk coordinates
         Vector2I currentChunkCoord = new Vector2I(
             (int)Mathf.Floor(_viewerPosition.X / ChunkSize),
             (int)Mathf.Floor(_viewerPosition.Y / ChunkSize)
         );
 
-        // Track chunks that need to be removed
         HashSet<Vector2I> chunksToRemove = new HashSet<Vector2I>(_activeChunks);
         _activeChunks.Clear();
 
-        // Create/update visible chunks
         for (int yOffset = -ViewDistance; yOffset <= ViewDistance; yOffset++)
         {
             for (int xOffset = -ViewDistance; xOffset <= ViewDistance; xOffset++)
@@ -69,7 +69,6 @@ public partial class EndlessTerrain : Node3D
             }
         }
 
-        // Remove out-of-range chunks
         foreach (Vector2I coord in chunksToRemove)
         {
             if (_terrainChunks.TryGetValue(coord, out TerrainGenerator chunk))
@@ -84,7 +83,6 @@ public partial class EndlessTerrain : Node3D
     {
         var chunk = new TerrainGenerator();
 
-        // Configure chunk
         chunk.ChunkOffset = new Vector2(coord.X * ChunkSize, coord.Y * ChunkSize);
         chunk.Size = ChunkSize;
         chunk.Position = new Vector3(
@@ -93,7 +91,6 @@ public partial class EndlessTerrain : Node3D
             coord.Y * ChunkSize
         );
 
-        // Copy terrain settings from first chunk if needed
         if (GetChildCount() > 0)
         {
             TerrainGenerator sample = GetChild<TerrainGenerator>(0);
@@ -106,5 +103,16 @@ public partial class EndlessTerrain : Node3D
         AddChild(chunk);
         chunk.UpdateMesh();
         _terrainChunks[coord] = chunk;
+
+        // Asignar el material exportado a cada chunk
+        if (chunk.Mesh is ArrayMesh arrayMesh && TerrainShaderMaterial != null)
+        {
+            arrayMesh.SurfaceSetMaterial(0, TerrainShaderMaterial.Duplicate() as ShaderMaterial); // Duplicar para que cada chunk tenga su propia instancia
+            TerrainShaderMaterial.SetShaderParameter("height", 40);
+        }
+        else if (TerrainShaderMaterial == null)
+        {
+            GD.PrintErr("TerrainShaderMaterial no ha sido asignado en el Inspector del nodo EndlessTerrain.");
+        }
     }
 }

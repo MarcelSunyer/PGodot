@@ -9,6 +9,9 @@ void fragment() {
 	vec3 modelVertex = (inverse(MODEL_MATRIX) * worldVertex).xyz;
 	float gradient_uv = (modelVertex.y / height) + 0.33;
 
-	ALBEDO = texture(colorGradient, vec2(gradient_uv)).rgb;
+	// Visualize the gradient_uv
+	// If gradient_uv is 0, it will be black. If 1, it will be white.
+	// Values outside 0-1 will clamp to black/white or repeat.
+	ALBEDO = vec3(gradient_uv);
 	NORMAL_MAP = texture(normalMap, UV).xyz;
 }

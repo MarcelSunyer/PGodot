@@ -14,13 +14,8 @@ public partial class PlayerCharacter : CharacterBody3D
 
     [Export]
     public int Gravity = -10;
-
-    private Camera3D _camera;
-
-    public override void _Ready()
-    {
-        _camera = GetNode<Camera3D>("Camera3D");
-    }
+    [Export]
+    public Camera3D _camera;
     public override void _PhysicsProcess(double delta)
     {
         Vector3 velocity = Velocity;
