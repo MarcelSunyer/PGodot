@@ -19,7 +19,7 @@ rings = 2
 
 [node name="PlayerCharacter" type="CharacterBody3D" parent="." node_paths=PackedStringArray("_camera")]
 script = ExtResource("1_evjmn")
-Speed = 26.065
+Speed = 70.0
 Acceleration = 5.0
 RotationSpeed = 3.0
 JumpVelocity = 30.0
@@ -38,4 +38,4 @@ transform = Transform3D(0.3, 0, 0, 0, -4.19001e-09, -0.3, 0, 0.0958563, -1.31134
 mesh = SubResource("CylinderMesh_ob5p8")
 
 [node name="Camera3D" type="Camera3D" parent="PlayerCharacter"]
-transform = Transform3D(1, 0, 0, 0, 0.775518, 0.631326, 0, -0.631326, 0.775518, 0.102848, 0.957157, 0.820595)
+transform = Transform3D(1, 0, 0, 0, 0.92901, 0.370055, 0, -0.370055, 0.92901, 0.0263554, 0.957157, 0.826478)

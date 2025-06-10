@@ -9,6 +9,8 @@ public partial class TerrainGenerator : MeshInstance3D
     public int _height = 32;
     public int _resolution = 1;
 
+
+
     public FastNoiseLite _noise;
 
     public CollisionShape3D _collisionShape;

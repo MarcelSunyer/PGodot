@@ -9,7 +9,13 @@ public partial class EndlessTerrain : Node3D
     [Export] public int ChunkSize = 32;
     [Export] public float UpdateThreshold = 25.0f;
 
-    [Export] // <--- Añade esta línea para exportar el ShaderMaterial
+    [Export]
+    public GradientTexture1D GradientTexture { get; set; }  // Reemplaza el Vector3 color
+
+    [Export]
+    public Vector3 color;
+   
+    [Export]
     public ShaderMaterial TerrainShaderMaterial { get; set; }
 
     private Node3D _viewer;
@@ -73,7 +79,7 @@ public partial class EndlessTerrain : Node3D
         {
             if (_terrainChunks.TryGetValue(coord, out TerrainGenerator chunk))
             {
-                chunk.QueueFree();
+                chunk.QueueFree(); // <-- Potential source of issues if not handled carefully
                 _terrainChunks.Remove(coord);
             }
         }
@@ -107,12 +113,39 @@ public partial class EndlessTerrain : Node3D
         // Asignar el material exportado a cada chunk
         if (chunk.Mesh is ArrayMesh arrayMesh && TerrainShaderMaterial != null)
         {
-            arrayMesh.SurfaceSetMaterial(0, TerrainShaderMaterial.Duplicate() as ShaderMaterial); // Duplicar para que cada chunk tenga su propia instancia
-            TerrainShaderMaterial.SetShaderParameter("height", 40);
+            var material = TerrainShaderMaterial.Duplicate() as ShaderMaterial;
+            arrayMesh.SurfaceSetMaterial(0, material);
+
+            if (GradientTexture != null)
+            {
+                material.SetShaderParameter("gradient_tex", GradientTexture);
+            }
+
+            // Añadir esta línea para sincronizar la altura máxima
+            material.SetShaderParameter("height_max", chunk.Height);
         }
         else if (TerrainShaderMaterial == null)
         {
             GD.PrintErr("TerrainShaderMaterial no ha sido asignado en el Inspector del nodo EndlessTerrain.");
+        }
+
+    }
+    public void UpdateGradient(Gradient newGradient)
+    {
+        if (GradientTexture != null)
+        {
+            GradientTexture.Gradient = newGradient;
+
+            foreach (var chunk in _terrainChunks.Values)
+            {
+                if (chunk.Mesh is ArrayMesh arrayMesh &&
+                    arrayMesh.SurfaceGetMaterial(0) is ShaderMaterial material)
+                {
+                    material.SetShaderParameter("gradient_tex", GradientTexture);
+                    // Asegurar que height_max está actualizado
+                    material.SetShaderParameter("height_max", chunk.Height);
+                }
+            }
         }
     }
 }

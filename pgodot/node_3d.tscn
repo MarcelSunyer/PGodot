@@ -22,23 +22,21 @@ glow_enabled = true
 
 [sub_resource type="Compositor" id="Compositor_r3fl7"]
 
+[sub_resource type="Gradient" id="Gradient_r3fl7"]
+colors = PackedColorArray(1, 0, 0, 1, 0, 1, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_jka67"]
+gradient = SubResource("Gradient_r3fl7")
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wc5p8"]
 render_priority = 0
 shader = ExtResource("2_a0tk4")
 shader_parameter/height = 64.0
 
-[sub_resource type="Gradient" id="Gradient_a0tk4"]
-offsets = PackedFloat32Array(0, 0.139344, 0.237705, 0.442623, 0.811475)
-colors = PackedColorArray(0.054902, 0.0352941, 0.466667, 1, 0, 0.537255, 0.835294, 1, 0.101961, 0.635294, 0.172549, 1, 0.858824, 0.462745, 0.254902, 1, 0.12549, 0.188235, 0.231373, 1)
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_r3fl7"]
-gradient = SubResource("Gradient_a0tk4")
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_r3fl7"]
 render_priority = 0
 shader = ExtResource("2_a0tk4")
 shader_parameter/height = 64.0
-shader_parameter/colorGradient = SubResource("GradientTexture1D_r3fl7")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_i5arm"]
 render_priority = 0
@@ -47,7 +45,7 @@ shader_parameter/height = 64.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_r3fl7"]
 _surfaces = [{
-"aabb": AABB(-100, -14.6411, -100, 200, 37.1813, 200),
+"aabb": AABB(-50, -4.90237, -50, 100, 14.5176, 100),
 "attribute_data": PackedByteArray("AACAPwAAgD8AAAA/AACAPwAAAAAAAIA/AACAPwAAAD8AAAA/AAAAPwAAAAAAAAA/AACAPwAAAAAAAAA/AAAAAAAAAAAAAAAA"),
 "format": 34359742487,
 "index_count": 24,
@@ -55,7 +53,7 @@ _surfaces = [{
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 9,
-"vertex_data": PackedByteArray("AADIQir3cb8AAMhCAAAAAPJBasEAAMhCAADIwtwnL8EAAMhCAADIQhSz7kAAAAAAAAAAAD5StEEAAAAAAADIwp9oL0EAAAAAAADIQmxsZcEAAMjCAAAAAKnCAUEAAMjCAADIwjZEusAAAMjCAID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/")
+"vertex_data": PackedByteArray("AABIQkBsuj8AAEhCAAAAADp6Tr8AAEhCAABIwpYQbkAAAEhCAABIQoHa5T8AAAAAAAAAAEHgnMAAAAAAAABIwi3Zx0AAAAAAAABIQvZYvD4AAEjCAAAAAAvYGUEAAEjCAABIwnkfhEAAAEjCAID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/")
 }]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jka67"]
@@ -64,13 +62,13 @@ shader = ExtResource("2_a0tk4")
 shader_parameter/height = 64.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_a0tk4"]
-seed = 1
-frequency = 1.0
+seed = 5
 offset = Vector3(136.1, 0, 0)
-fractal_octaves = 3
+fractal_octaves = 9
+fractal_lacunarity = 5.0
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_jka67"]
-data = PackedVector3Array(100, -0.9452, 100, 0, -14.6411, 100, 100, 7.4594, 0, 0, -14.6411, 100, 0, 22.5402, 0, 100, 7.4594, 0, 0, -14.6411, 100, -100, -10.9472, 100, 0, 22.5402, 0, -100, -10.9472, 100, -100, 10.963, 0, 0, 22.5402, 0, 100, 7.4594, 0, 0, 22.5402, 0, 100, -14.339, -100, 0, 22.5402, 0, 0, 8.11, -100, 100, -14.339, -100, 0, 22.5402, 0, -100, 10.963, 0, 0, 8.11, -100, -100, 10.963, 0, -100, -5.8208, -100, 0, 8.11, -100)
+data = PackedVector3Array(50, 1.4564, 50, 0, -0.8066, 50, 50, 1.7957, 0, 0, -0.8066, 50, 0, -4.9024, 0, 50, 1.7957, 0, 0, -0.8066, 50, -50, 3.7198, 50, 0, -4.9024, 0, -50, 3.7198, 50, -50, 6.2453, 0, 0, -4.9024, 0, 50, 1.7957, 0, 0, -4.9024, 0, 50, 0.3679, -50, 0, -4.9024, 0, 0, 9.6152, -50, 50, 0.3679, -50, 0, -4.9024, 0, -50, 6.2453, 0, 0, 9.6152, -50, -50, 6.2453, 0, -50, 4.1288, -50, 0, 9.6152, -50)
 
 [node name="Node3D" type="Node3D"]
 
@@ -94,11 +92,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0881, 43.2891, -11.0659)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 28.912, 0)
 script = ExtResource("4_jka67")
 ViewerPath = NodePath("../Player")
+ViewDistance = 10
+ChunkSize = 50
+UpdateThreshold = 10.0
+GradientTexture = SubResource("GradientTexture1D_jka67")
+color = Vector3(0, 1, 1)
 TerrainShaderMaterial = SubResource("ShaderMaterial_wc5p8")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D"]
-transform = Transform3D(0.999818, 0.00174502, -0.0189706, -0.00252568, 0.999147, -0.0412056, 0.0188825, 0.0412461, 0.998969, -1.60351, -8.95615, 1.90161)
-visible = false
+transform = Transform3D(0.992831, 0.00173282, -0.018838, -0.00250803, 0.992164, -0.0409176, 0.0187505, 0.0409579, 0.991988, -1.60351, -8.95615, 1.90161)
 material_override = SubResource("ShaderMaterial_r3fl7")
 material_overlay = SubResource("ShaderMaterial_i5arm")
 mesh = SubResource("ArrayMesh_r3fl7")
@@ -106,9 +108,9 @@ skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("ShaderMaterial_jka67")
 script = ExtResource("1_a202f")
 NoiseFrequency = 18.43
-Height = 50
-Frequency = 6.435
-Size = 200
+Height = 20
+Frequency = 6.0
+Size = 100
 Noise = SubResource("FastNoiseLite_a0tk4")
 metadata/_edit_group_ = true
 
