@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=4 uid="uid://bvoaa0lg7fxao"]
+[gd_scene load_steps=20 format=4 uid="uid://bvoaa0lg7fxao"]
 
 [ext_resource type="Script" uid="uid://dkidfbuy5g0gm" path="res://TerrainData/TerrainGenerator.cs" id="1_a202f"]
 [ext_resource type="Shader" uid="uid://c14o076oj8h88" path="res://TerrainData/terrain.gdshader" id="2_a0tk4"]
@@ -22,8 +22,11 @@ glow_enabled = true
 
 [sub_resource type="Compositor" id="Compositor_r3fl7"]
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_r3fl7"]
+
 [sub_resource type="Gradient" id="Gradient_r3fl7"]
-colors = PackedColorArray(1, 0, 0, 1, 0, 1, 0, 1)
+offsets = PackedFloat32Array(0, 0.493506, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.950578, 0.558921, 1, 1, 1, 1, 1, 1)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_jka67"]
 gradient = SubResource("Gradient_r3fl7")
@@ -45,7 +48,7 @@ shader_parameter/height = 64.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_r3fl7"]
 _surfaces = [{
-"aabb": AABB(-50, -4.90237, -50, 100, 14.5176, 100),
+"aabb": AABB(-100, -25.3941, -100, 200, 61.5441, 200),
 "attribute_data": PackedByteArray("AACAPwAAgD8AAAA/AACAPwAAAAAAAIA/AACAPwAAAD8AAAA/AAAAPwAAAAAAAAA/AACAPwAAAAAAAAA/AAAAAAAAAAAAAAAA"),
 "format": 34359742487,
 "index_count": 24,
@@ -53,7 +56,7 @@ _surfaces = [{
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 9,
-"vertex_data": PackedByteArray("AABIQkBsuj8AAEhCAAAAADp6Tr8AAEhCAABIwpYQbkAAAEhCAABIQoHa5T8AAAAAAAAAAEHgnMAAAAAAAABIwi3Zx0AAAAAAAABIQvZYvD4AAEjCAAAAAAvYGUEAAEjCAABIwnkfhEAAAEjCAID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/")
+"vertex_data": PackedByteArray("AADIQlaTQ0EAAMhCAAAAAFY6dkEAAMhCAADIwvYpBcEAAMhCAADIQpCI9z8AAAAAAAAAACony8EAAAAAAADIwp+vXEEAAAAAAADIQpSZEEIAAMjCAAAAAOYQL0AAAMjCAADIwvUoBUIAAMjCAID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/AID//////78AgP//////vwCA//////+/")
 }]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jka67"]
@@ -66,9 +69,10 @@ seed = 5
 offset = Vector3(136.1, 0, 0)
 fractal_octaves = 9
 fractal_lacunarity = 5.0
+fractal_weighted_strength = 1.0
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_jka67"]
-data = PackedVector3Array(50, 1.4564, 50, 0, -0.8066, 50, 50, 1.7957, 0, 0, -0.8066, 50, 0, -4.9024, 0, 50, 1.7957, 0, 0, -0.8066, 50, -50, 3.7198, 50, 0, -4.9024, 0, -50, 3.7198, 50, -50, 6.2453, 0, 0, -4.9024, 0, 50, 1.7957, 0, 0, -4.9024, 0, 50, 0.3679, -50, 0, -4.9024, 0, 0, 9.6152, -50, 50, 0.3679, -50, 0, -4.9024, 0, -50, 6.2453, 0, 0, 9.6152, -50, -50, 6.2453, 0, -50, 4.1288, -50, 0, 9.6152, -50)
+data = PackedVector3Array(100, 12.2235, 100, 0, 15.3892, 100, 100, 1.9339, 0, 0, 15.3892, 100, 0, -25.3941, 0, 100, 1.9339, 0, 0, 15.3892, 100, -100, -8.3227, 100, 0, -25.3941, 0, -100, -8.3227, 100, -100, 13.7929, 0, 0, -25.3941, 0, 100, 1.9339, 0, 0, -25.3941, 0, 100, 36.15, -100, 0, -25.3941, 0, 0, 2.7354, -100, 100, 36.15, -100, 0, -25.3941, 0, -100, 13.7929, 0, 0, 2.7354, -100, -100, 13.7929, 0, -100, 33.29, -100, 0, 2.7354, -100)
 
 [node name="Node3D" type="Node3D"]
 
@@ -86,21 +90,22 @@ camera_attributes = SubResource("CameraAttributesPractical_a0tk4")
 compositor = SubResource("Compositor_r3fl7")
 
 [node name="Player" parent="." instance=ExtResource("4_r3fl7")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.0881, 43.2891, -11.0659)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.219072, 91.1294, -44.28)
 
 [node name="Node3D" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 28.912, 0)
 script = ExtResource("4_jka67")
 ViewerPath = NodePath("../Player")
 ViewDistance = 10
 ChunkSize = 50
-UpdateThreshold = 10.0
+Height = 20
+NoiseFrequency = 0.5
+Noise = SubResource("FastNoiseLite_r3fl7")
 GradientTexture = SubResource("GradientTexture1D_jka67")
-color = Vector3(0, 1, 1)
 TerrainShaderMaterial = SubResource("ShaderMaterial_wc5p8")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D"]
-transform = Transform3D(0.992831, 0.00173282, -0.018838, -0.00250803, 0.992164, -0.0409176, 0.0187505, 0.0409579, 0.991988, -1.60351, -8.95615, 1.90161)
+transform = Transform3D(0.967882, 0.00168928, -0.0183646, -0.00244501, 0.967232, -0.0398894, 0.0182794, 0.0399286, 0.96706, -1.60351, -8.95615, 1.90161)
+visible = false
 material_override = SubResource("ShaderMaterial_r3fl7")
 material_overlay = SubResource("ShaderMaterial_i5arm")
 mesh = SubResource("ArrayMesh_r3fl7")
@@ -108,9 +113,8 @@ skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("ShaderMaterial_jka67")
 script = ExtResource("1_a202f")
 NoiseFrequency = 18.43
-Height = 20
-Frequency = 6.0
-Size = 100
+Height = 90
+Size = 200
 Noise = SubResource("FastNoiseLite_a0tk4")
 metadata/_edit_group_ = true
 

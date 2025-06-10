@@ -1,22 +1,22 @@
 ﻿using Godot;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 public partial class EndlessTerrain : Node3D
 {
     [Export] public NodePath ViewerPath;
-    [Export] public int ViewDistance = 5;
-    [Export] public int ChunkSize = 32;
-    [Export] public float UpdateThreshold = 25.0f;
+    [Export] public int ViewDistance = 8;
+    [Export] public float UpdateThreshold = 10.0f;
+    [Export] public int ChunkSize = 64;
 
-    [Export]
-    public GradientTexture1D GradientTexture { get; set; }  // Reemplaza el Vector3 color
+    [Export] public int Height = 32;
+    [Export] public int Resolution = 1;
+    [Export] public float NoiseFrequency = 0.1f;
+    [Export] public FastNoiseLite Noise;
 
-    [Export]
-    public Vector3 color;
-   
-    [Export]
-    public ShaderMaterial TerrainShaderMaterial { get; set; }
+    [Export] public GradientTexture1D GradientTexture;
+    [Export] public ShaderMaterial TerrainShaderMaterial;
 
     private Node3D _viewer;
     private Vector2 _viewerPosition;
@@ -25,6 +25,7 @@ public partial class EndlessTerrain : Node3D
     private Dictionary<Vector2I, TerrainGenerator> _terrainChunks = new Dictionary<Vector2I, TerrainGenerator>();
     private HashSet<Vector2I> _activeChunks = new HashSet<Vector2I>();
 
+    int amountChunks;
     public override void _Ready()
     {
         _viewer = GetNode<Node3D>(ViewerPath);
@@ -36,23 +37,27 @@ public partial class EndlessTerrain : Node3D
     {
         _viewerPosition = new Vector2(_viewer.Position.X, _viewer.Position.Z);
 
-        if (_viewerPosition.DistanceSquaredTo(_lastViewerPosition) > _sqrUpdateThreshold)
+        // Actualizar solo si el jugador se movió lo suficiente
+        if ((_viewerPosition - _lastViewerPosition).LengthSquared() > _sqrUpdateThreshold)
         {
             _lastViewerPosition = _viewerPosition;
             UpdateChunks();
         }
+
     }
 
     private void UpdateChunks()
     {
+        
+        HashSet<Vector2I> chunksToRemove = new HashSet<Vector2I>(_activeChunks);
+        _activeChunks.Clear();
+
         Vector2I currentChunkCoord = new Vector2I(
             (int)Mathf.Floor(_viewerPosition.X / ChunkSize),
             (int)Mathf.Floor(_viewerPosition.Y / ChunkSize)
         );
 
-        HashSet<Vector2I> chunksToRemove = new HashSet<Vector2I>(_activeChunks);
-        _activeChunks.Clear();
-
+        // Generar chunks en un cuadrado alrededor del jugador
         for (int yOffset = -ViewDistance; yOffset <= ViewDistance; yOffset++)
         {
             for (int xOffset = -ViewDistance; xOffset <= ViewDistance; xOffset++)
@@ -75,11 +80,12 @@ public partial class EndlessTerrain : Node3D
             }
         }
 
+        // Eliminar chunks fuera de rango
         foreach (Vector2I coord in chunksToRemove)
         {
             if (_terrainChunks.TryGetValue(coord, out TerrainGenerator chunk))
             {
-                chunk.QueueFree(); // <-- Potential source of issues if not handled carefully
+                chunk.QueueFree();
                 _terrainChunks.Remove(coord);
             }
         }
@@ -87,30 +93,27 @@ public partial class EndlessTerrain : Node3D
 
     private void CreateChunk(Vector2I coord)
     {
+        amountChunks = amountChunks+ 1;
         var chunk = new TerrainGenerator();
 
+        // Configurar propiedades del chunk
         chunk.ChunkOffset = new Vector2(coord.X * ChunkSize, coord.Y * ChunkSize);
         chunk.Size = ChunkSize;
-        chunk.Position = new Vector3(
-            coord.X * ChunkSize,
-            0,
-            coord.Y * ChunkSize
-        );
+        chunk.Height = Height;
+        chunk.Resolution = Resolution;
+        chunk.NoiseFrequency = NoiseFrequency;
 
-        if (GetChildCount() > 0)
+        if (Noise != null)
         {
-            TerrainGenerator sample = GetChild<TerrainGenerator>(0);
-            chunk.Height = sample.Height;
-            chunk.Resolution = sample.Resolution;
-            chunk.NoiseFrequency = sample.NoiseFrequency;
-            chunk.Noise = sample.Noise.Duplicate() as FastNoiseLite;
+            chunk.Noise = Noise.Duplicate() as FastNoiseLite;
         }
 
+        chunk.Position = new Vector3(coord.X * ChunkSize, 0, coord.Y * ChunkSize);
         AddChild(chunk);
         chunk.UpdateMesh();
         _terrainChunks[coord] = chunk;
 
-        // Asignar el material exportado a cada chunk
+        // Aplicar material
         if (chunk.Mesh is ArrayMesh arrayMesh && TerrainShaderMaterial != null)
         {
             var material = TerrainShaderMaterial.Duplicate() as ShaderMaterial;
@@ -120,32 +123,7 @@ public partial class EndlessTerrain : Node3D
             {
                 material.SetShaderParameter("gradient_tex", GradientTexture);
             }
-
-            // Añadir esta línea para sincronizar la altura máxima
-            material.SetShaderParameter("height_max", chunk.Height);
-        }
-        else if (TerrainShaderMaterial == null)
-        {
-            GD.PrintErr("TerrainShaderMaterial no ha sido asignado en el Inspector del nodo EndlessTerrain.");
-        }
-
-    }
-    public void UpdateGradient(Gradient newGradient)
-    {
-        if (GradientTexture != null)
-        {
-            GradientTexture.Gradient = newGradient;
-
-            foreach (var chunk in _terrainChunks.Values)
-            {
-                if (chunk.Mesh is ArrayMesh arrayMesh &&
-                    arrayMesh.SurfaceGetMaterial(0) is ShaderMaterial material)
-                {
-                    material.SetShaderParameter("gradient_tex", GradientTexture);
-                    // Asegurar que height_max está actualizado
-                    material.SetShaderParameter("height_max", chunk.Height);
-                }
-            }
+            material.SetShaderParameter("height_max", Height);
         }
     }
 }
