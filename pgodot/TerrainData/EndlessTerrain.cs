@@ -10,6 +10,9 @@ public partial class EndlessTerrain : Node3D
     [Export] public float UpdateThreshold = 10.0f;
     [Export] public int ChunkSize = 64;
 
+    // Variable que controla cuántos chunks se generan al inicio
+    [Export] public int InitialSpawnRadius = 1; // 1 = solo el chunk donde está el jugador
+
     [Export] public int Height = 32;
     [Export] public int Resolution = 1;
     [Export] public float NoiseFrequency = 0.1f;
@@ -30,25 +33,56 @@ public partial class EndlessTerrain : Node3D
     {
         _viewer = GetNode<Node3D>(ViewerPath);
         _sqrUpdateThreshold = UpdateThreshold * UpdateThreshold;
-        UpdateChunks();
+        _viewerPosition = new Vector2(_viewer.Position.X, _viewer.Position.Z);
+        _lastViewerPosition = _viewerPosition;
+
+        // Generar chunks iniciales
+        SpawnInitialChunks();
     }
 
+    private void SpawnInitialChunks()
+    {
+        Vector2I currentChunkCoord = new Vector2I(
+            (int)Mathf.Floor(_viewerPosition.X / ChunkSize),
+            (int)Mathf.Floor(_viewerPosition.Y / ChunkSize)
+        );
+
+        // Generar chunks en un radio alrededor del jugador
+        for (int y = -InitialSpawnRadius; y <= InitialSpawnRadius; y++)
+        {
+            for (int x = -InitialSpawnRadius; x <= InitialSpawnRadius; x++)
+            {
+                // Esto crea un área circular en lugar de cuadrada
+                if (x * x + y * y <= InitialSpawnRadius * InitialSpawnRadius)
+                {
+                    Vector2I chunkCoord = new Vector2I(
+                        currentChunkCoord.X + x,
+                        currentChunkCoord.Y + y
+                    );
+
+                    if (!_terrainChunks.ContainsKey(chunkCoord))
+                    {
+                        CreateChunk(chunkCoord);
+                    }
+                }
+            }
+        }
+    }
+
+    // Resto del código permanece igual...
     public override void _Process(double delta)
     {
         _viewerPosition = new Vector2(_viewer.Position.X, _viewer.Position.Z);
 
-        // Actualizar solo si el jugador se movió lo suficiente
         if ((_viewerPosition - _lastViewerPosition).LengthSquared() > _sqrUpdateThreshold)
         {
             _lastViewerPosition = _viewerPosition;
             UpdateChunks();
         }
-
     }
 
     private void UpdateChunks()
     {
-        
         HashSet<Vector2I> chunksToRemove = new HashSet<Vector2I>(_activeChunks);
         _activeChunks.Clear();
 
@@ -57,7 +91,6 @@ public partial class EndlessTerrain : Node3D
             (int)Mathf.Floor(_viewerPosition.Y / ChunkSize)
         );
 
-        // Generar chunks en un cuadrado alrededor del jugador
         for (int yOffset = -ViewDistance; yOffset <= ViewDistance; yOffset++)
         {
             for (int xOffset = -ViewDistance; xOffset <= ViewDistance; xOffset++)
@@ -80,7 +113,6 @@ public partial class EndlessTerrain : Node3D
             }
         }
 
-        // Eliminar chunks fuera de rango
         foreach (Vector2I coord in chunksToRemove)
         {
             if (_terrainChunks.TryGetValue(coord, out TerrainGenerator chunk))
@@ -93,10 +125,9 @@ public partial class EndlessTerrain : Node3D
 
     private void CreateChunk(Vector2I coord)
     {
-        amountChunks = amountChunks+ 1;
+        amountChunks = amountChunks + 1;
         var chunk = new TerrainGenerator();
 
-        // Configurar propiedades del chunk
         chunk.ChunkOffset = new Vector2(coord.X * ChunkSize, coord.Y * ChunkSize);
         chunk.Size = ChunkSize;
         chunk.Height = Height;
@@ -113,7 +144,6 @@ public partial class EndlessTerrain : Node3D
         chunk.UpdateMesh();
         _terrainChunks[coord] = chunk;
 
-        // Aplicar material
         if (chunk.Mesh is ArrayMesh arrayMesh && TerrainShaderMaterial != null)
         {
             var material = TerrainShaderMaterial.Duplicate() as ShaderMaterial;
