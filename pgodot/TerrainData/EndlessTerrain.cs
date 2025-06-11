@@ -8,7 +8,7 @@ public partial class EndlessTerrain : Node3D
     [Export] public int ViewDistance = 450;
     [Export] public FastNoiseLite NoiseTemplate;
     [Export] public Curve HeightCurveTemplate;
-
+    [Export] public TerrainGenerator TerrainTemplate;
 
     private int _chunksVisibleInViewDst;
     private Dictionary<Vector2, TerrainGenerator> _terrainChunks = new();
@@ -72,13 +72,19 @@ public partial class EndlessTerrain : Node3D
     private void CreateNewChunk(Vector2 coord, Vector2 position)
     {
         var newChunk = new TerrainGenerator();
+
+        // Copiar parámetros desde el template
+        newChunk.CopySettingsFrom(TerrainTemplate);
+
+        // Asignar una copia del noise (importante)
         newChunk.Noise = NoiseTemplate.Duplicate() as FastNoiseLite;
-        newChunk.HeightCurve = HeightCurveTemplate;
+
+        // Inicializar
         newChunk.ConfigureNoise();
         newChunk.Initialize(position, ChunkSize);
         newChunk.Position = new Vector3(position.X, 0, position.Y);
         newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
-        
+
         AddChild(newChunk);
         _terrainChunks.Add(coord, newChunk);
         _lastVisibleChunks.Add(newChunk);

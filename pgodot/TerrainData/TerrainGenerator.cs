@@ -236,7 +236,24 @@ public partial class TerrainGenerator : MeshInstance3D
         ConfigureNoise();
         UpdateMesh();
     }
-
+    public void CopySettingsFrom(TerrainGenerator other)
+    {
+        Flatness = other.Flatness;
+        Height = other.Height;
+        Resolution = other.Resolution;
+        NoiseFrequency = other.NoiseFrequency;
+        NoiseMin = other.NoiseMin;
+        NoiseMax = other.NoiseMax;
+        Wireframe = other.Wireframe;
+        TextureScale = other.TextureScale;
+        Gradient = other.Gradient;
+        HeightCurve = other.HeightCurve;
+        Octaves = other.Octaves;
+        Persistence = other.Persistence;
+        Lacunarity = other.Lacunarity;
+        NoiseOffsetX = other.NoiseOffsetX;
+        NoiseOffsetY = other.NoiseOffsetY;
+    }
     public void UpdateMesh()
     {
         if (_noise == null) ConfigureNoise();
