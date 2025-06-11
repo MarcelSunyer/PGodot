@@ -3,42 +3,69 @@ using System;
 
 public partial class PlayerCharacter : CharacterBody3D
 {
-    [Export]
-    public float Speed = 5.0f;
-    [Export]
-    public float Acceleration = 10.0f;
-    [Export]
-    public float RotationSpeed = 5.0f;
-    [Export]
-    public float JumpVelocity = 4.5f;
+    [Export] public float Speed = 5.0f;
+    [Export] public float Acceleration = 10.0f;
+    [Export] public float RotationSpeed = 5.0f;
+    [Export] public float JumpVelocity = 4.5f;
+    [Export] public int Gravity = -10;
+    [Export] public Camera3D _camera;
+    [Export] public Node3D RotationPivot;
 
-    [Export]
-    public int Gravity = -10;
-    [Export]
-    public Camera3D _camera;
+    private Vector2 _mouseDelta;
+    private bool _jumpRequested = false;
+
+    public override void _Ready()
+    {
+        Input.MouseMode = Input.MouseModeEnum.Captured;
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is InputEventMouseMotion mouseMotion)
+        {
+            _mouseDelta = mouseMotion.Relative;
+        }
+        else if (@event is InputEventMouseButton mouseButton)
+        {
+            if (mouseButton.ButtonIndex == MouseButton.Right && mouseButton.Pressed)
+            {
+                _jumpRequested = true;
+            }
+        }
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         Vector3 velocity = Velocity;
 
-        if (Input.IsActionJustPressed("jump") && IsOnFloor())
+        // Jump with right-click
+        if (_jumpRequested && IsOnFloor())
+        {
             velocity.Y = JumpVelocity;
+        }
+        _jumpRequested = false;
 
         velocity.Y += (float)(Gravity * delta);
 
-        Vector2 input = new Vector2(Input.GetActionRawStrength("right") - Input.GetActionRawStrength("left"), Input.GetActionRawStrength("back") - Input.GetActionRawStrength("forward")).Normalized();
+        // Mouse look
+        float mouseSensitivity = 0.002f;
+        RotationPivot.RotateY(-_mouseDelta.X * mouseSensitivity);
+        _camera.RotateX(-_mouseDelta.Y * mouseSensitivity);
+        _camera.Rotation = new Vector3(
+            Mathf.Clamp(_camera.Rotation.X, -1.2f, 1.2f),
+            _camera.Rotation.Y,
+            _camera.Rotation.Z
+        );
+        _mouseDelta = Vector2.Zero;
 
-        if (input.Length() > 0.01f)
+        // Forward movement with W only
+        if (Input.IsActionPressed("forward"))
         {
-            Vector3 forward = _camera.GlobalTransform.Basis.Z;
-            Vector3 right = _camera.GlobalTransform.Basis.X;
+            Vector3 forward = -RotationPivot.GlobalTransform.Basis.Z;
             forward.Y = 0;
-            right.Y = 0;
             forward = forward.Normalized();
-            right = right.Normalized();
 
-            Vector3 direction = (right * input.X + forward * input.Y).Normalized();
-
-            // Set horizontal movement
+            Vector3 direction = forward;
             velocity.X = direction.X * Speed;
             velocity.Z = direction.Z * Speed;
 

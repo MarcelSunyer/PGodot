@@ -1,30 +1,34 @@
 ﻿using Godot;
 using System;
 
-
 [Tool]
 public partial class TerrainGenerator : MeshInstance3D
 {
-    public int _size = 32;
-    public int _height = 32;
-    public int _resolution = 1;
+    private int _size = 32;
+    private int _height = 32;
+    private int _resolution = 4;
+    private FastNoiseLite _noise;
+    private Curve _heightCurve;
+    private Vector2 _chunkPosition;
 
-
-
-    public FastNoiseLite _noise;
-
-    public CollisionShape3D _collisionShape;
-    private Callable _updateMeshCallable;
+    [Export] public float NoiseFrequency { get; set; } = 0.05f;
+    [Export] public int Octaves { get; set; } = 4;
+    [Export(PropertyHint.Range, "0,1")] public float Persistence { get; set; } = 0.5f;
+    [Export] public float Lacunarity { get; set; } = 2.0f;
 
     [Export] 
-    public Vector2 ChunkOffset { get; set; } = Vector2.Zero;
-    
-    [Export] 
-    public float NoiseFrequency { get; set; } = 0.1f;
+    public Curve HeightCurve
+    {
+        get => _heightCurve;
+        set
+        {
+            _heightCurve = value;
+            if (Engine.IsEditorHint())
+                UpdateMesh();
+        }
+    }
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
-
-
     public int Height
     {
         get => _height;
@@ -35,8 +39,6 @@ public partial class TerrainGenerator : MeshInstance3D
                 UpdateMesh();
         }
     }
-    [Export] 
-    public float Frequency { get; set; } = 0.1f;
 
     [Export(PropertyHint.Range, "0,1000,0.1")]
     public int Size
@@ -49,36 +51,8 @@ public partial class TerrainGenerator : MeshInstance3D
                 UpdateMesh();
         }
     }
-    [Export]
-    public FastNoiseLite Noise
-    {
-        get => _noise;
-        set
-        {
-            if (_noise == value)
-                return;
 
-            if (_noise != null && _noise.IsConnected("changed", Callable.From(UpdateMesh)))
-            {
-                _noise.Disconnect("changed", Callable.From(UpdateMesh));
-            }
-
-            _noise = value;
-
-            if (Engine.IsEditorHint())
-            {
-                UpdateMesh();
-            }
-
-            if (_noise != null && !_noise.IsConnected("changed", Callable.From(UpdateMesh)))
-            {
-                _noise.Changed += UpdateMesh; 
-
-            }
-        }
-    }
     [Export(PropertyHint.Range, "0,256,1")]
-
     public int Resolution
     {
         get => _resolution;
@@ -90,36 +64,76 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    public float GetHeight(float x, float z)
+    [Export]
+    public FastNoiseLite Noise
     {
-        if (_noise == null)
-            return 0f;
+        get => _noise;
+        set
+        {
+            if (_noise == value) return;
+            
+            if (_noise != null && _noise.IsConnected("changed", Callable.From(UpdateMesh)))
+                _noise.Disconnect("changed", Callable.From(UpdateMesh));
 
-        // Apply chunk offset to noise sampling
-        float worldX = x + ChunkOffset.X;
-        float worldZ = z + ChunkOffset.Y;
-        return _noise.GetNoise2D(worldX * NoiseFrequency, worldZ * NoiseFrequency) * _height;
+            _noise = value;
+            ConfigureNoise();
+
+            if (Engine.IsEditorHint()) 
+                UpdateMesh();
+            
+            if (_noise != null && !_noise.IsConnected("changed", Callable.From(UpdateMesh)))
+                _noise.Changed += UpdateMesh;
+        }
     }
 
-    public Vector3 GetNormal(float x, float z)
+    public void ConfigureNoise()
     {
-        int epsilon = Mathf.Max(1, _size / (_resolution + 1));
+        if (_noise == null) return;
+        
+        _noise.NoiseType = FastNoiseLite.NoiseTypeEnum.Simplex;
+        _noise.FractalOctaves = Octaves;
+        _noise.FractalGain = Persistence;
+        _noise.FractalLacunarity = Lacunarity;
+        _noise.Frequency = NoiseFrequency;
+    }
 
+    public void Initialize(Vector2 position, int size)
+    {
+        _chunkPosition = position;
+        Size = size;
+        UpdateMesh();
+    }
+
+    private float GetHeight(float x, float z)
+    {
+        if (_noise == null) return 0f;
+
+        float worldX = x + _chunkPosition.X;
+        float worldZ = z + _chunkPosition.Y;
+        
+        float noiseValue = _noise.GetNoise2D(worldX, worldZ);
+        noiseValue = (noiseValue + 1) * 0.5f; // Convert to 0-1 range
+        
+        if (_heightCurve != null)
+            noiseValue = _heightCurve.Sample(noiseValue);
+        
+        return noiseValue * _height;
+    }
+
+    private Vector3 GetNormal(float x, float z)
+    {
+        float epsilon = Mathf.Max(1, _size / (_resolution + 1));
         float dx = (GetHeight(x + epsilon, z) - GetHeight(x - epsilon, z)) / (2.0f * epsilon);
         float dz = (GetHeight(x, z + epsilon) - GetHeight(x, z - epsilon)) / (2.0f * epsilon);
 
-        Vector3 normal = new Vector3(-dx, 1.0f, -dz);
-        return normal.Normalized();
-    }   
+        return new Vector3(-dx, 1.0f, -dz).Normalized();
+    }
+
     public void UpdateMesh()
     {
-        if (_noise == null)
-        {
-            return;
-        }
+        if (_noise == null) return;
 
-        var planeMesh = new PlaneMesh
-        {
+        var planeMesh = new PlaneMesh {
             Size = new Vector2(_size, _size),
             SubdivideDepth = _resolution,
             SubdivideWidth = _resolution
@@ -128,35 +142,32 @@ public partial class TerrainGenerator : MeshInstance3D
         var meshArrays = planeMesh.GetMeshArrays();
         Vector3[] vertices = (Vector3[])meshArrays[(int)ArrayMesh.ArrayType.Vertex];
         Vector3[] normals = new Vector3[vertices.Length];
-        // Modificar la altura de los vértices
+        
         for (int i = 0; i < vertices.Length; i++)
         {
             Vector3 vertex = vertices[i];
             vertex.Y = GetHeight(vertex.X, vertex.Z);
             normals[i] = GetNormal(vertex.X, vertex.Z);
             vertices[i] = vertex;
-
         }
 
-        // Actualizar el array de vértices
         meshArrays[(int)ArrayMesh.ArrayType.Vertex] = vertices;
+        meshArrays[(int)ArrayMesh.ArrayType.Normal] = normals;
 
-        // Crear el nuevo mesh
         var arrayMesh = new ArrayMesh();
         arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshArrays);
         Mesh = arrayMesh;
 
+        // Clear old collisions
         foreach (Node child in GetChildren())
         {
             if (child is StaticBody3D)
-                RemoveChild(child); // Quitar del árbol de nodos
-
-            // También opcionalmente liberar el nodo
-            child.QueueFree();
+            {
+                RemoveChild(child);
+                child.QueueFree();
+            }
         }
 
-        // Crear nueva colisión
-        this.CreateTrimeshCollision();
+        CreateTrimeshCollision();
     }
-
 }

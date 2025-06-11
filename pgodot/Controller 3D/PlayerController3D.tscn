@@ -23,7 +23,6 @@ Speed = 70.0
 Acceleration = 5.0
 RotationSpeed = 3.0
 JumpVelocity = 30.0
-Gravity = -8
 _camera = NodePath("Camera3D")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="PlayerCharacter"]
