@@ -68,7 +68,7 @@ _surfaces = [{
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_jsk3o"]
 noise_type = 0
 frequency = 1.0
-fractal_octaves = 2
+fractal_octaves = 502
 fractal_lacunarity = 1.0
 fractal_gain = 0.0
 
@@ -101,9 +101,8 @@ compositor = SubResource("Compositor_r3fl7")
 [node name="Node3D" type="Node3D" parent="." node_paths=PackedStringArray("Player", "TerrainTemplate")]
 transform = Transform3D(0.999816, -0.00150181, -0.0191123, 0.00149073, 0.999999, -0.000593641, 0.0191132, 0.000565043, 0.999817, 0, 0, 0)
 script = ExtResource("4_jka67")
-Player = NodePath("../CharacterBody3D")
 ChunkSize = 200
-ViewDistance = 500
+Player = NodePath("../CharacterBody3D")
 NoiseTemplate = SubResource("FastNoiseLite_r3fl7")
 HeightCurveTemplate = SubResource("Curve_jka67")
 TerrainTemplate = NodePath("../MeshInstance3D")
@@ -147,7 +146,7 @@ Gradient = SubResource("Gradient_i5arm")
 NoiseFrequency = 1.0
 NoiseMin = 28.2
 NoiseMax = 71.8
-Octaves = 2
+Octaves = 502
 Persistence = 0.0
 Lacunarity = 1.0
 TextureScale = 2.9

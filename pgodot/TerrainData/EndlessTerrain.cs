@@ -3,22 +3,20 @@ using System.Collections.Generic;
 
 public partial class EndlessTerrain : Node3D
 {
-    [Export] public Node3D Player;
+    [Export(PropertyHint.Range, "1,10,1")]
+    public int RenderLayers = 3;
+
     [Export] public int ChunkSize = 32;
-    [Export] public int ViewDistance = 450;
+    [Export] public Node3D Player;    
     [Export] public FastNoiseLite NoiseTemplate;
     [Export] public Curve HeightCurveTemplate;
     [Export] public TerrainGenerator TerrainTemplate;
 
-    private int _chunksVisibleInViewDst;
+
+
     private Dictionary<Vector2, TerrainGenerator> _terrainChunks = new();
     private List<TerrainGenerator> _lastVisibleChunks = new();
     private Vector2 _playerPosition;
-
-    public override void _Ready()
-    {
-        _chunksVisibleInViewDst = Mathf.RoundToInt(ViewDistance / ChunkSize);
-    }
 
     public override void _Process(double delta)
     {
@@ -42,10 +40,10 @@ public partial class EndlessTerrain : Node3D
         int currentChunkY = Mathf.RoundToInt(_playerPosition.Y / ChunkSize);
 
         // Update chunks around player
-        for (int yOffset = -_chunksVisibleInViewDst; yOffset <= _chunksVisibleInViewDst; yOffset++)
+        for (int yOffset = -RenderLayers; yOffset <= RenderLayers; yOffset++)
         {
-            for (int xOffset = -_chunksVisibleInViewDst; xOffset <= _chunksVisibleInViewDst; xOffset++)
-            {
+            for (int xOffset = -RenderLayers; xOffset <= RenderLayers; xOffset++)
+            { 
                 Vector2 chunkCoord = new Vector2(currentChunkX + xOffset, currentChunkY + yOffset);
                 Vector2 chunkWorldPos = chunkCoord * ChunkSize;
 
@@ -66,7 +64,9 @@ public partial class EndlessTerrain : Node3D
     {
         Vector2 viewerPos = new Vector2(Player.Position.X, Player.Position.Z);
         float distance = chunkPosition.DistanceTo(viewerPos);
-        return distance <= ViewDistance;
+        float maxDist = (RenderLayers + 0.5f) * ChunkSize;
+        return distance <= maxDist;
+
     }
 
     private void CreateNewChunk(Vector2 coord, Vector2 position)
