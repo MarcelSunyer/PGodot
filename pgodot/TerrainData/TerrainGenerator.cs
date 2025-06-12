@@ -8,12 +8,11 @@ public partial class TerrainGenerator : MeshInstance3D
     public Callable ClickMeButton => Callable.From(UpdateTerrain);
     private void UpdateTerrain()
     {
-        
         if (Engine.IsEditorHint())
         {
-            _gradientDirty = true; // <- Forzar recreación del gradiente
+            _gradientDirty = true;
+            _baseGridDirty = true; // Forzar regeneración de malla base
             UpdateMesh();
-
         }
     }
 
@@ -49,7 +48,21 @@ public partial class TerrainGenerator : MeshInstance3D
     public int Height { get; set; } = 32;
     [Export(PropertyHint.Range, "1,256,1")]
     public int Resolution { get; set; } = 4;
-    [Export] public Curve HeightCurve { get; set; }
+
+    private Curve _heightCurve;
+    [Export]
+    public Curve HeightCurve
+    {
+        get => _heightCurve;
+        set
+        {
+            if (_heightCurve == value) return;
+            _heightCurve = value;
+            if (Engine.IsEditorHint())
+                UpdateMesh();
+        }
+    }
+
     private Gradient _gradient;
     [Export]
     public Gradient Gradient
@@ -311,6 +324,11 @@ public partial class TerrainGenerator : MeshInstance3D
 
         if (Gradient != null && _gradientDirty)
         {
+            // Liberar textura anterior si existe
+            if (_gradientTexture != null)
+            {
+                _gradientTexture.Dispose();
+            }
             _gradientTexture = GradientToTexture(Gradient);
             _gradientDirty = false;
         }
@@ -326,7 +344,7 @@ public partial class TerrainGenerator : MeshInstance3D
         {
             UpdateCollisions();
             _collisionsCreated = true;
-            GD.Print("UpdateTerrain called"); // <- Esto es clave para verificar.
+            GD.Print("UpdateTerrain called");
         }
     }
 
