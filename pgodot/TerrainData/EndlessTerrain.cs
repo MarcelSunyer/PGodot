@@ -72,21 +72,18 @@ public partial class EndlessTerrain : Node3D
     private void CreateNewChunk(Vector2 coord, Vector2 position)
     {
         var newChunk = new TerrainGenerator();
+        AddChild(newChunk); // Añade primero el chunk
 
-        // Copiar parámetros desde el template
         newChunk.CopySettingsFrom(TerrainTemplate);
-
-        // Asignar una copia del noise (importante)
         newChunk.Noise = NoiseTemplate.Duplicate() as FastNoiseLite;
-
-        // Inicializar
         newChunk.ConfigureNoise();
         newChunk.Initialize(position, ChunkSize);
         newChunk.Position = new Vector3(position.X, 0, position.Y);
         newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
+        newChunk.UpdateCollisions();
 
-        AddChild(newChunk);
         _terrainChunks.Add(coord, newChunk);
         _lastVisibleChunks.Add(newChunk);
+
     }
 }

@@ -348,7 +348,7 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    private void UpdateCollisions()
+    public void UpdateCollisions()
     {
         foreach (Node child in GetChildren())
         {
