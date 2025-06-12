@@ -175,7 +175,7 @@ public partial class TerrainGenerator : MeshInstance3D
 
     public override void _Ready()
     {
-        this.SetProcess(false);
+        _noise.Frequency = 0.003f;
     }
     private Texture2D GradientToTexture(Gradient gradient)
     {

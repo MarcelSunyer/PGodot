@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\terraindata\\endlessterrain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:terraindata\\endlessterrain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\terraindata\\terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:terraindata\\terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\terraindata\\endlessterrain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|solutionrelative:terraindata\\endlessterrain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,17 +18,17 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "EndlessTerrain.cs",
               "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainData\\EndlessTerrain.cs",
               "RelativeDocumentMoniker": "TerrainData\\EndlessTerrain.cs",
               "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainData\\EndlessTerrain.cs",
               "RelativeToolTip": "TerrainData\\EndlessTerrain.cs",
-              "ViewState": "AgIAADsAAAAAAAAAAAAwwFQAAABDAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAAAowEwAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-09T13:32:06.47Z",
               "IsPinned": true,
@@ -40,13 +40,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "TerrainGenerator.cs",
               "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainData\\TerrainGenerator.cs",
               "RelativeDocumentMoniker": "TerrainData\\TerrainGenerator.cs",
               "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainData\\TerrainGenerator.cs",
               "RelativeToolTip": "TerrainData\\TerrainGenerator.cs",
-              "ViewState": "AgIAAOcAAAAAAAAAAAAcwPsAAAAoAAAAAAAAAA==",
+              "ViewState": "AgIAAJ0AAAAAAAAAAAAwwLEAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-04-30T10:03:08.446Z",
               "EditorCaption": ""
