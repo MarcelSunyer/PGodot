@@ -3,12 +3,17 @@ using System.Collections.Generic;
 
 public partial class EndlessTerrain : Node3D
 {
+    //Rocardar aquesta freqüency
+    [Export] public float frequency;
+
     [Export] public Node3D Player;
     [Export] public int ChunkSize = 32;
     [Export] public int ViewDistance = 450;
     [Export] public FastNoiseLite NoiseTemplate;
     [Export] public Curve HeightCurveTemplate;
     [Export] public TerrainGenerator TerrainTemplate;
+
+
 
     private int _chunksVisibleInViewDst;
     private Dictionary<Vector2, TerrainGenerator> _terrainChunks = new();
@@ -17,6 +22,7 @@ public partial class EndlessTerrain : Node3D
 
     public override void _Ready()
     {
+        frequency = frequency / 1000;
         _chunksVisibleInViewDst = Mathf.RoundToInt(ViewDistance / ChunkSize);
     }
 
@@ -72,18 +78,26 @@ public partial class EndlessTerrain : Node3D
     private void CreateNewChunk(Vector2 coord, Vector2 position)
     {
         var newChunk = new TerrainGenerator();
-        AddChild(newChunk); // Añade primero el chunk
+        AddChild(newChunk);
 
-        newChunk.CopySettingsFrom(TerrainTemplate);
+        // 1. Primero configurar el ruido
         newChunk.Noise = NoiseTemplate.Duplicate() as FastNoiseLite;
+        
+
+        // 2. Luego copiar las configuraciones del template
+        newChunk.CopySettingsFrom(TerrainTemplate);
+
+        // 3. Configurar el ruido después de copiar las propiedades
         newChunk.ConfigureNoise();
+
         newChunk.Initialize(position, ChunkSize);
+
         newChunk.Position = new Vector3(position.X, 0, position.Y);
         newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
+        newChunk.Noise.Frequency = frequency;
         newChunk.UpdateCollisions();
 
         _terrainChunks.Add(coord, newChunk);
         _lastVisibleChunks.Add(newChunk);
-
     }
 }
