@@ -14,7 +14,6 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    // Original noise properties preserved
     private FastNoiseLite _noise;
     [Export]
     public FastNoiseLite Noise
@@ -38,20 +37,15 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    // Terrain parameters
     [ExportGroup("Terrain Settings")]
- 
     [Export(PropertyHint.Range, "0.1,10,0.1")]
     public float Flatness { get; set; } = 1.0f;
     [Export(PropertyHint.Range, "1,1000,1")]
     public int Size { get; set; } = 32;
-
     [Export(PropertyHint.Range, "1,1000,1")]
     public int Height { get; set; } = 32;
-
     [Export(PropertyHint.Range, "1,256,1")]
     public int Resolution { get; set; } = 4;
-
     [Export] public Curve HeightCurve { get; set; }
     [Export] public Gradient Gradient { get; set; }
 
@@ -70,17 +64,13 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    // Add these new properties for noise range control
     [Export(PropertyHint.Range, "0,100,0.1")]
     public float NoiseMin { get; set; } = 0f;
-
     [Export(PropertyHint.Range, "0,100,0.1")]
     public float NoiseMax { get; set; } = 100f;
-
     [Export(PropertyHint.Range, "0,1,0.01")]
-    public float Smoothness { get; set; } = 0.5f; // 0 = no smoothing, 1 = full smoothing
+    public float Smoothness { get; set; } = 0.5f;
     private int _octaves = 4;
-
 
     [Export(PropertyHint.None, "Number of octaves")]
     public int Octaves
@@ -149,7 +139,6 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    // Visual settings
     [ExportGroup("Visual Settings")]
     [Export] public bool Wireframe { get; set; } = false;
     [Export(PropertyHint.Range, "0.1,10,0.1")]
@@ -157,6 +146,22 @@ public partial class TerrainGenerator : MeshInstance3D
 
     private Vector2 _chunkPosition;
     private Texture2D _gradientTexture;
+    private Vector3[] _baseVertices;
+    private int[] _indices;
+    private Vector2[] _uvs;
+    private bool _baseGridDirty = true;
+    private ShaderMaterial _cachedMaterial;
+    private bool _gradientDirty = true;
+    private bool _collisionsCreated = false;
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationPredelete)
+        {
+            if (_noise != null && _noise.IsConnected("changed", Callable.From(UpdateMesh)))
+                _noise.Disconnect("changed", Callable.From(UpdateMesh));
+        }
+    }
 
     public void ConfigureNoise()
     {
@@ -173,10 +178,22 @@ public partial class TerrainGenerator : MeshInstance3D
         _noise.FractalLacunarity = Lacunarity;
     }
 
-    public override void _Ready()
+    private void RegenerateBaseGrid()
     {
-        _noise.Frequency = 0.003f;
+        var planeMesh = new PlaneMesh
+        {
+            Size = new Vector2(Size, Size),
+            SubdivideDepth = Resolution,
+            SubdivideWidth = Resolution
+        };
+
+        var meshArrays = planeMesh.GetMeshArrays();
+        _baseVertices = (Vector3[])meshArrays[(int)ArrayMesh.ArrayType.Vertex];
+        _indices = (int[])meshArrays[(int)ArrayMesh.ArrayType.Index];
+        _uvs = (Vector2[])meshArrays[(int)ArrayMesh.ArrayType.TexUV];
+        _baseGridDirty = false;
     }
+
     private Texture2D GradientToTexture(Gradient gradient)
     {
         if (gradient == null) return null;
@@ -201,17 +218,9 @@ public partial class TerrainGenerator : MeshInstance3D
         float worldZ = z + _chunkPosition.Y + NoiseOffsetY;
 
         float noiseValue = _noise.GetNoise2D(worldX, worldZ);
-
-        // Remap noise from [-1, 1] to [0, 1] first
         noiseValue = (noiseValue + 1f) * 0.5f;
-
-        // Apply min/max range
         noiseValue = Mathf.Lerp(NoiseMin / 100f, NoiseMax / 100f, noiseValue);
-
-        // Ensure noiseValue is non-negative (terrain starts at 0)
         noiseValue = Mathf.Max(0.1f, noiseValue);
-
-        // Apply flatness (lower values = flatter, higher = more mountainous)
         noiseValue = Mathf.Pow(noiseValue, 1f / Flatness);
 
         if (HeightCurve != null)
@@ -220,22 +229,15 @@ public partial class TerrainGenerator : MeshInstance3D
         return noiseValue * Height;
     }
 
-    private Vector3 GetNormal(float x, float z)
-    {
-        float epsilon = Mathf.Max(1, Size / (Resolution + 1));
-        float dx = (GetHeight(x + epsilon, z) - GetHeight(x - epsilon, z)) / (2.0f * epsilon);
-        float dz = (GetHeight(x, z + epsilon) - GetHeight(x, z - epsilon)) / (2.0f * epsilon);
-
-        return new Vector3(-dx, 1.0f, -dz).Normalized();
-    }
-
     public void Initialize(Vector2 position, int size)
     {
         _chunkPosition = position;
         Size = size;
+        _baseGridDirty = true;
         ConfigureNoise();
         UpdateMesh();
     }
+
     public void CopySettingsFrom(TerrainGenerator other)
     {
         Flatness = other.Flatness;
@@ -253,65 +255,66 @@ public partial class TerrainGenerator : MeshInstance3D
         Lacunarity = other.Lacunarity;
         NoiseOffsetX = other.NoiseOffsetX;
         NoiseOffsetY = other.NoiseOffsetY;
+        _gradientDirty = true;
     }
+
     public void UpdateMesh()
     {
         if (_noise == null) ConfigureNoise();
+        if (_baseGridDirty) RegenerateBaseGrid();
 
-        var planeMesh = new PlaneMesh
+        Vector3[] currentVertices = new Vector3[_baseVertices.Length];
+        for (int i = 0; i < _baseVertices.Length; i++)
         {
-            Size = new Vector2(Size, Size),
-            SubdivideDepth = Resolution,
-            SubdivideWidth = Resolution
-        };
-
-        var meshArrays = planeMesh.GetMeshArrays();
-        Vector3[] vertices = (Vector3[])meshArrays[(int)ArrayMesh.ArrayType.Vertex];
-        Vector3[] normals = new Vector3[vertices.Length];
-
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            Vector3 vertex = vertices[i];
+            Vector3 vertex = _baseVertices[i];
             vertex.Y = GetHeight(vertex.X, vertex.Z);
-            normals[i] = GetNormal(vertex.X, vertex.Z);
-            vertices[i] = vertex;
+            currentVertices[i] = vertex;
         }
 
-        meshArrays[(int)ArrayMesh.ArrayType.Vertex] = vertices;
-        meshArrays[(int)ArrayMesh.ArrayType.Normal] = normals;
+        var surfaceTool = new SurfaceTool();
+        surfaceTool.Begin(Mesh.PrimitiveType.Triangles);
 
-        var arrayMesh = new ArrayMesh();
-        arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshArrays);
-
-        if (Wireframe)
+        for (int i = 0; i < currentVertices.Length; i++)
         {
-            var wireframeMesh = new ArrayMesh();
-            wireframeMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Lines, meshArrays);
-            Mesh = wireframeMesh;
+            surfaceTool.SetUV(_uvs[i]);
+            surfaceTool.AddVertex(currentVertices[i]);
         }
-        else
+
+        for (int i = 0; i < _indices.Length; i++)
         {
-            Mesh = arrayMesh;
+            surfaceTool.AddIndex(_indices[i]);
         }
 
-        // Create material
-        var shader = GD.Load<Shader>("res://TerrainData/terrain.gdshader");
-        var shaderMaterial = new ShaderMaterial { Shader = shader };
+        surfaceTool.GenerateNormals();
 
-        _gradientTexture = GradientToTexture(Gradient);
-        shaderMaterial.SetShaderParameter("height", Height);
-        shaderMaterial.SetShaderParameter("gradient_tex", _gradientTexture);
-        shaderMaterial.SetShaderParameter("texture_scale", TextureScale);
+        if (_cachedMaterial == null)
+        {
+            var shader = GD.Load<Shader>("res://TerrainData/terrain.gdshader");
+            _cachedMaterial = new ShaderMaterial { Shader = shader };
+        }
 
-        MaterialOverride = shaderMaterial;
+        if (Gradient != null && _gradientDirty)
+        {
+            _gradientTexture = GradientToTexture(Gradient);
+            _gradientDirty = false;
+        }
 
-        // Update collisions
-        UpdateCollisions();
+        _cachedMaterial.SetShaderParameter("height", Height);
+        _cachedMaterial.SetShaderParameter("gradient_tex", _gradientTexture);
+        _cachedMaterial.SetShaderParameter("texture_scale", TextureScale);
+
+        surfaceTool.SetMaterial(_cachedMaterial);
+        Mesh = surfaceTool.Commit();
+
+        if (Engine.IsEditorHint() || !_collisionsCreated)
+        {
+            UpdateCollisions();
+            _collisionsCreated = true;
+        }
     }
 
     private void UpdateCollisions()
     {
-        // Remove old collisions
         foreach (Node child in GetChildren())
         {
             if (child is StaticBody3D || child is CollisionShape3D)
