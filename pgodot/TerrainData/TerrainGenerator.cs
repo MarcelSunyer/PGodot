@@ -53,7 +53,11 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
+    public void MarkGradientDirty()
+    {
+        _gradientDirty = true;
+        QueueUpdate();
+    }
     private float _flatness = 1.0f;
     public float Flatness
     {
@@ -117,14 +121,29 @@ public partial class TerrainGenerator : MeshInstance3D
     }
 
     private Gradient _gradient;
+    [Export]
     public Gradient Gradient
     {
         get => _gradient;
         set
         {
             if (_gradient == value) return;
+
+            // Disconnect previous gradient's changed signal
+            if (_gradient != null && _gradient.IsConnected("changed", Callable.From(UpdateMesh)))
+            {
+                _gradient.Disconnect("changed", Callable.From(UpdateMesh));
+            }
+
             _gradient = value;
             _gradientDirty = true;
+
+            // Connect to new gradient's changed signal
+            if (_gradient != null && !_gradient.IsConnected("changed", Callable.From(UpdateMesh)))
+            {
+                _gradient.Changed += UpdateMesh;
+            }
+
             QueueUpdate();
         }
     }
@@ -262,8 +281,30 @@ public partial class TerrainGenerator : MeshInstance3D
     private bool _gradientDirty = true;
     private bool _collisionsCreated = false;
 
+    private void InitializeDefaultGradient()
+    {
+        Gradient = new Gradient();
+        Gradient.SetOffset(0, 0.0f);
+        Gradient.SetColor(0, new Color(0.1f, 0.3f, 0.1f)); // Dark green
+        Gradient.SetOffset(1, 0.5f);
+        Gradient.SetColor(1, new Color(0.8f, 0.7f, 0.5f)); // Sandy brown
+        Gradient.SetOffset(2, 0.8f);
+        Gradient.SetColor(2, new Color(0.6f, 0.6f, 0.6f)); // Gray
+        Gradient.SetOffset(3, 1.0f);
+        Gradient.SetColor(3, new Color(1.0f, 1.0f, 1.0f)); // White
+    }
+
     public override void _Ready()
     {
+        if (Gradient == null || Gradient.GetPointCount() == 0)
+        {
+            InitializeDefaultGradient();
+        }
+        else if (!Gradient.IsConnected("changed", Callable.From(UpdateMesh)))
+        {
+            Gradient.Changed += UpdateMesh;
+        }
+
         if (TerrainManager.Instance != null)
         {
             TerrainManager.Instance.CurrentTerrain = this;
@@ -271,13 +312,16 @@ public partial class TerrainGenerator : MeshInstance3D
         this.Visible = false;
         UpdateMesh();
     }
-    
+
     public override void _Notification(int what)
     {
         if (what == NotificationPredelete)
         {
             if (_noise != null && _noise.IsConnected("changed", Callable.From(UpdateMesh)))
                 _noise.Disconnect("changed", Callable.From(UpdateMesh));
+
+            if (Gradient != null && Gradient.IsConnected("changed", Callable.From(UpdateMesh)))
+                Gradient.Disconnect("changed", Callable.From(UpdateMesh));
         }
     }
 
@@ -375,16 +419,6 @@ public partial class TerrainGenerator : MeshInstance3D
         NoiseOffsetY = other.NoiseOffsetY;
         _gradientDirty = true;
     }
-    
-    public void SetGradient(Gradient newGradient)
-    {
-        if (newGradient != null)
-        {
-            Gradient = newGradient;
-            _gradientDirty = true;
-            QueueUpdate();
-        }
-    }
 
     private void QueueUpdate()
     {
@@ -442,7 +476,7 @@ public partial class TerrainGenerator : MeshInstance3D
         _cachedMaterial.SetShaderParameter("height", Height);
         _cachedMaterial.SetShaderParameter("gradient_tex", _gradientTexture);
         _cachedMaterial.SetShaderParameter("texture_scale", TextureScale);
-        
+
         surfaceTool.SetMaterial(_cachedMaterial);
         Mesh = surfaceTool.Commit();
 

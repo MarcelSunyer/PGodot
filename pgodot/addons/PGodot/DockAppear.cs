@@ -26,6 +26,7 @@ public partial class DockAppear : EditorPlugin
     private HSlider sliderOffsetY;
     private HSlider sliderTextureScale;
     private CheckBox checkWireframe;
+    private Button btnEditGradient;
 
     public override void _EnterTree()
     {
@@ -74,6 +75,25 @@ public partial class DockAppear : EditorPlugin
         AddControlGroup(vbox, "VISUAL SETTINGS",
             CreateSlider("Texture Scale", 0.1f, 10, 0.1f, out sliderTextureScale)
         );
+
+        // Gradient Editor Button
+        var gradientGroup = new VBoxContainer();
+        var gradientLabel = new Label
+        {
+            Text = "TERRAIN COLOR GRADIENT",
+            HorizontalAlignment = HorizontalAlignment.Center,
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        gradientGroup.AddChild(gradientLabel);
+
+        btnEditGradient = new Button
+        {
+            Text = "Edit Gradient",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        gradientGroup.AddChild(btnEditGradient);
+        vbox.AddChild(gradientGroup);
+        vbox.AddChild(new HSeparator());
 
         // Wireframe Checkbox
         var wireframeContainer = new HBoxContainer();
@@ -136,6 +156,7 @@ public partial class DockAppear : EditorPlugin
     private void ConnectSignals()
     {
         btnUpdate.Pressed += OnUpdatePressed;
+        btnEditGradient.Pressed += OnEditGradientPressed;
 
         sliderFrequency.ValueChanged += (value) => UpdateTerrainProperty("NoiseFrequency", value);
         sliderOctaves.ValueChanged += (value) => UpdateTerrainProperty("Octaves", value);
@@ -151,8 +172,13 @@ public partial class DockAppear : EditorPlugin
         sliderOffsetX.ValueChanged += (value) => UpdateTerrainProperty("NoiseOffsetX", value);
         sliderOffsetY.ValueChanged += (value) => UpdateTerrainProperty("NoiseOffsetY", value);
         sliderTextureScale.ValueChanged += (value) => UpdateTerrainProperty("TextureScale", value);
-        checkWireframe.Toggled += (pressed) => UpdateTerrainProperty("Wireframe", pressed ? 1 : 0);
+
+        checkWireframe.Toggled += (pressed) =>
+        {
+            UpdateTerrainProperty("Wireframe", pressed ? 1.0 : 0.0);
+        };
     }
+
 
     private void FindTerrainGenerator()
     {
@@ -176,6 +202,7 @@ public partial class DockAppear : EditorPlugin
                 terrainGenerator = new TerrainGenerator { Name = "TerrainGenerator" };
                 editedSceneRoot.AddChild(terrainGenerator);
                 terrainGenerator.Owner = editedSceneRoot;
+                UpdateUIFromTerrain();
             }
         }
         else
@@ -221,7 +248,7 @@ public partial class DockAppear : EditorPlugin
         sliderOffsetX.Value = terrainGenerator.NoiseOffsetX;
         sliderOffsetY.Value = terrainGenerator.NoiseOffsetY;
         sliderTextureScale.Value = terrainGenerator.TextureScale;
-        checkWireframe.ButtonPressed = terrainGenerator.Wireframe;
+checkWireframe.ButtonPressed = terrainGenerator.Wireframe;
     }
 
     private void UpdateTerrainProperty(string propertyName, double value)
@@ -279,11 +306,30 @@ public partial class DockAppear : EditorPlugin
                 terrainGenerator.TextureScale = (float)value;
                 break;
             case "Wireframe":
-                terrainGenerator.Wireframe = value > 0;
+                // Interpreta 1.0 como true, 0.0 como false
+                terrainGenerator.Wireframe = value > 0.5;
                 break;
         }
 
         terrainGenerator.CallDeferred("UpdateMesh");
+    }
+
+    private void OnEditGradientPressed()
+    {
+        if (terrainGenerator != null && terrainGenerator.Gradient != null)
+        {
+            EditorInterface.Singleton.InspectObject(terrainGenerator.Gradient);
+
+            if (!terrainGenerator.Gradient.IsConnected("changed", Callable.From(OnGradientChanged)))
+            {
+                terrainGenerator.Gradient.Changed += OnGradientChanged;
+            }
+        }
+    }
+
+    private void OnGradientChanged()
+    {
+        terrainGenerator?.CallDeferred("MarkGradientDirty");
     }
 
     private void OnUpdatePressed()
@@ -293,6 +339,14 @@ public partial class DockAppear : EditorPlugin
 
     public override void _ExitTree()
     {
+        if (terrainGenerator != null && terrainGenerator.Gradient != null)
+        {
+            if (terrainGenerator.Gradient.IsConnected("changed", Callable.From(OnGradientChanged)))
+            {
+                terrainGenerator.Gradient.Disconnect("changed", Callable.From(OnGradientChanged));
+            }
+        }
+
         if (mainPanelInstance != null)
         {
             RemoveControlFromDocks(mainPanelInstance);
