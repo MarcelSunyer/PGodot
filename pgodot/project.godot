@@ -15,13 +15,17 @@ run/main_scene="uid://bvoaa0lg7fxao"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+TerrainManager="*res://addons/PGodot/TerrainManager.cs"
+
 [dotnet]
 
 project/assembly_name="PGodot"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/PGodot/plugin.cfg", "res://addons/Test/plugin.cfg")
+enabled=PackedStringArray("res://addons/PGodot/plugin.cfg")
 
 [input]
 

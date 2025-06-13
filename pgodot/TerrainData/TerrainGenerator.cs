@@ -4,6 +4,8 @@ using System;
 [Tool]
 public partial class TerrainGenerator : MeshInstance3D
 {
+    public static TerrainManager TerrainManager { get; set; }
+
     [ExportToolButton("Update Parameters")]
     public Callable ClickMeButton => Callable.From(UpdateTerrain);
     private void UpdateTerrain()
@@ -11,13 +13,12 @@ public partial class TerrainGenerator : MeshInstance3D
         if (Engine.IsEditorHint())
         {
             _gradientDirty = true;
-            _baseGridDirty = true; // Forzar regeneración de malla base
+            _baseGridDirty = true;
             UpdateMesh();
         }
     }
 
     private FastNoiseLite _noise;
-    [Export]
     public FastNoiseLite Noise
     {
         get => _noise;
@@ -39,33 +40,71 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    [ExportGroup("Terrain Settings")]
-    public float _noiseFrequency = 10;
-
-
-    [Export(PropertyHint.None, "Frequency of the noise")]
+    private float _noiseFrequency = 10;
     public float NoiseFrequency
     {
-        get => _noiseFrequency /1000;
+        get => _noiseFrequency / 1000;
         set
         {
-            if (_noiseFrequency == value) return;
-            _noiseFrequency = value;
+            float newValue = value * 1000;
+            if (Mathf.Abs(_noiseFrequency - newValue) < 0.001f) return;
+            _noiseFrequency = newValue;
             ConfigureNoise();
-            if (Engine.IsEditorHint()) UpdateMesh();
+            QueueUpdate();
         }
     }
-    [Export(PropertyHint.Range, "0.1,10,0.1")]
-    public float Flatness { get; set; } = 1.0f;
-    [Export(PropertyHint.Range, "1,1000,1")]
-    public int Size { get; set; } = 32;
-    [Export(PropertyHint.Range, "1,1000,1")]
-    public int Height { get; set; } = 32;
-    [Export(PropertyHint.Range, "1,256,1")]
-    public int Resolution { get; set; } = 4;
+
+    private float _flatness = 1.0f;
+    public float Flatness
+    {
+        get => _flatness;
+        set
+        {
+            if (Mathf.Abs(_flatness - value) < 0.001f) return;
+            _flatness = value;
+            QueueUpdate();
+        }
+    }
+
+    private int _size = 32;
+    public int Size
+    {
+        get => _size;
+        set
+        {
+            if (_size == value) return;
+            _size = value;
+            _baseGridDirty = true;
+            QueueUpdate();
+        }
+    }
+
+    private int _height = 32;
+    public int Height
+    {
+        get => _height;
+        set
+        {
+            if (_height == value) return;
+            _height = value;
+            QueueUpdate();
+        }
+    }
+
+    private int _resolution = 4;
+    public int Resolution
+    {
+        get => _resolution;
+        set
+        {
+            if (_resolution == value) return;
+            _resolution = value;
+            _baseGridDirty = true;
+            QueueUpdate();
+        }
+    }
 
     private Curve _heightCurve;
-    [Export]
     public Curve HeightCurve
     {
         get => _heightCurve;
@@ -73,13 +112,11 @@ public partial class TerrainGenerator : MeshInstance3D
         {
             if (_heightCurve == value) return;
             _heightCurve = value;
-            if (Engine.IsEditorHint())
-                UpdateMesh();
+            QueueUpdate();
         }
     }
 
     private Gradient _gradient;
-    [Export]
     public Gradient Gradient
     {
         get => _gradient;
@@ -88,23 +125,47 @@ public partial class TerrainGenerator : MeshInstance3D
             if (_gradient == value) return;
             _gradient = value;
             _gradientDirty = true;
-            if (Engine.IsEditorHint())
-                UpdateMesh();
+            QueueUpdate();
         }
     }
 
-    [ExportGroup("Noise Settings")]
+    private float _noiseMin = 0f;
+    public float NoiseMin
+    {
+        get => _noiseMin;
+        set
+        {
+            if (Mathf.Abs(_noiseMin - value) < 0.001f) return;
+            _noiseMin = value;
+            QueueUpdate();
+        }
+    }
 
+    private float _noiseMax = 100f;
+    public float NoiseMax
+    {
+        get => _noiseMax;
+        set
+        {
+            if (Mathf.Abs(_noiseMax - value) < 0.001f) return;
+            _noiseMax = value;
+            QueueUpdate();
+        }
+    }
 
-    [Export(PropertyHint.Range, "0,100,0.1")]
-    public float NoiseMin { get; set; } = 0f;
-    [Export(PropertyHint.Range, "0,100,0.1")]
-    public float NoiseMax { get; set; } = 100f;
-    [Export(PropertyHint.Range, "0,1,0.01")]
-    public float Smoothness { get; set; } = 0.5f;
+    private float _smoothness = 0.5f;
+    public float Smoothness
+    {
+        get => _smoothness;
+        set
+        {
+            if (Mathf.Abs(_smoothness - value) < 0.001f) return;
+            _smoothness = value;
+            QueueUpdate();
+        }
+    }
+
     private int _octaves = 4;
-
-    [Export(PropertyHint.None, "Number of octaves")]
     public int Octaves
     {
         get => _octaves;
@@ -113,68 +174,83 @@ public partial class TerrainGenerator : MeshInstance3D
             if (_octaves == value) return;
             _octaves = value;
             ConfigureNoise();
-            if (Engine.IsEditorHint()) UpdateMesh();
+            QueueUpdate();
         }
     }
 
     private float _persistence = 0.5f;
-    [Export(PropertyHint.None, "Persistence of the noise")]
     public float Persistence
     {
         get => _persistence;
         set
         {
-            if (_persistence == value) return;
+            if (Mathf.Abs(_persistence - value) < 0.001f) return;
             _persistence = value;
             ConfigureNoise();
-            if (Engine.IsEditorHint()) UpdateMesh();
+            QueueUpdate();
         }
     }
 
     private float _lacunarity = 2.0f;
-    [Export(PropertyHint.None, "Lacunarity of the noise")]
     public float Lacunarity
     {
         get => _lacunarity;
         set
         {
-            if (_lacunarity == value) return;
+            if (Mathf.Abs(_lacunarity - value) < 0.001f) return;
             _lacunarity = value;
             ConfigureNoise();
-            if (Engine.IsEditorHint()) UpdateMesh();
+            QueueUpdate();
         }
     }
 
     private float _noiseOffsetX = 0f;
-    [Export(PropertyHint.None, "X offset of the noise")]
     public float NoiseOffsetX
     {
         get => _noiseOffsetX;
         set
         {
-            if (_noiseOffsetX == value) return;
+            if (Mathf.Abs(_noiseOffsetX - value) < 0.001f) return;
             _noiseOffsetX = value;
-            if (Engine.IsEditorHint()) UpdateMesh();
+            QueueUpdate();
         }
     }
 
     private float _noiseOffsetY = 0f;
-    [Export(PropertyHint.None, "Y offset of the noise")]
     public float NoiseOffsetY
     {
         get => _noiseOffsetY;
         set
         {
-            if (_noiseOffsetY == value) return;
+            if (Mathf.Abs(_noiseOffsetY - value) < 0.001f) return;
             _noiseOffsetY = value;
-            if (Engine.IsEditorHint()) UpdateMesh();
+            QueueUpdate();
         }
     }
 
-    [ExportGroup("Visual Settings")]
-    [Export] public bool Wireframe { get; set; } = false;
-    [Export(PropertyHint.Range, "0.1,10,0.1")]
-    public float TextureScale { get; set; } = 1.0f;
+    private bool _wireframe = false;
+    public bool Wireframe
+    {
+        get => _wireframe;
+        set
+        {
+            if (_wireframe == value) return;
+            _wireframe = value;
+            QueueUpdate();
+        }
+    }
+
+    private float _textureScale = 1.0f;
+    public float TextureScale
+    {
+        get => _textureScale;
+        set
+        {
+            if (Mathf.Abs(_textureScale - value) < 0.001f) return;
+            _textureScale = value;
+            QueueUpdate();
+        }
+    }
 
     private Vector2 _chunkPosition;
     private Texture2D _gradientTexture;
@@ -186,12 +262,16 @@ public partial class TerrainGenerator : MeshInstance3D
     private bool _gradientDirty = true;
     private bool _collisionsCreated = false;
 
-
-    private new void Ready()
+    public override void _Ready()
     {
+        if (TerrainManager.Instance != null)
+        {
+            TerrainManager.Instance.CurrentTerrain = this;
+        }
         this.Visible = false;
         UpdateMesh();
     }
+    
     public override void _Notification(int what)
     {
         if (what == NotificationPredelete)
@@ -210,7 +290,7 @@ public partial class TerrainGenerator : MeshInstance3D
         }
 
         _noise.NoiseType = FastNoiseLite.NoiseTypeEnum.Simplex;
-        _noise.Frequency = _noiseFrequency / 1000;
+        _noise.Frequency = NoiseFrequency;
         _noise.FractalOctaves = Octaves;
         _noise.FractalGain = Persistence;
         _noise.FractalLacunarity = Lacunarity;
@@ -241,7 +321,7 @@ public partial class TerrainGenerator : MeshInstance3D
         for (int x = 0; x < 256; x++)
         {
             float t = x / 255f;
-            Color color = gradient.Sample(t);
+            Godot.Color color = gradient.Sample(t);
             image.SetPixel(x, 0, color);
         }
 
@@ -295,6 +375,24 @@ public partial class TerrainGenerator : MeshInstance3D
         NoiseOffsetY = other.NoiseOffsetY;
         _gradientDirty = true;
     }
+    
+    public void SetGradient(Gradient newGradient)
+    {
+        if (newGradient != null)
+        {
+            Gradient = newGradient;
+            _gradientDirty = true;
+            QueueUpdate();
+        }
+    }
+
+    private void QueueUpdate()
+    {
+        if (Engine.IsEditorHint())
+        {
+            CallDeferred("UpdateMesh");
+        }
+    }
 
     public void UpdateMesh()
     {
@@ -333,7 +431,6 @@ public partial class TerrainGenerator : MeshInstance3D
 
         if (Gradient != null && _gradientDirty)
         {
-            // Liberar textura anterior si existe
             if (_gradientTexture != null)
             {
                 _gradientTexture.Dispose();
@@ -346,7 +443,6 @@ public partial class TerrainGenerator : MeshInstance3D
         _cachedMaterial.SetShaderParameter("gradient_tex", _gradientTexture);
         _cachedMaterial.SetShaderParameter("texture_scale", TextureScale);
         
-
         surfaceTool.SetMaterial(_cachedMaterial);
         Mesh = surfaceTool.Commit();
 
@@ -354,7 +450,6 @@ public partial class TerrainGenerator : MeshInstance3D
         {
             UpdateCollisions();
             _collisionsCreated = true;
-            GD.Print("UpdateTerrain called");
         }
     }
 
