@@ -8,6 +8,7 @@ public partial class DockAppear : EditorPlugin
 {
     private Control mainPanelInstance;
     private TerrainGenerator terrainGenerator;
+    private EndlessTerrain endlessTerrain;
 
     // UI Controls
     private Button btnUpdate;
@@ -35,6 +36,42 @@ public partial class DockAppear : EditorPlugin
         CreateUI();
         AddControlToDock(DockSlot.RightBl, mainPanelInstance);
         FindTerrainGenerator();
+        FindEndlessTerrain();
+    }
+
+    private void FindEndlessTerrain()
+    {
+        var editorInterface = EditorInterface.Singleton;
+        var editedSceneRoot = editorInterface.GetEditedSceneRoot();
+
+        if (editedSceneRoot != null)
+        {
+            var terrains = new List<EndlessTerrain>();
+            FindEndlessTerrainsRecursive(editedSceneRoot, terrains);
+
+            if (terrains.Count > 0)
+            {
+                endlessTerrain = terrains[0];
+                GD.Print("EndlessTerrain found: " + endlessTerrain.Name);
+            }
+            else
+            {
+                GD.Print("No EndlessTerrain found in scene");
+            }
+        }
+    }
+
+    private void FindEndlessTerrainsRecursive(Node node, List<EndlessTerrain> terrains)
+    {
+        if (node is EndlessTerrain terrain)
+        {
+            terrains.Add(terrain);
+        }
+
+        foreach (Node child in node.GetChildren())
+        {
+            FindEndlessTerrainsRecursive(child, terrains);
+        }
     }
 
     private void CreateUI()
@@ -179,7 +216,6 @@ public partial class DockAppear : EditorPlugin
         };
     }
 
-
     private void FindTerrainGenerator()
     {
         var editorInterface = EditorInterface.Singleton;
@@ -248,7 +284,7 @@ public partial class DockAppear : EditorPlugin
         sliderOffsetX.Value = terrainGenerator.NoiseOffsetX;
         sliderOffsetY.Value = terrainGenerator.NoiseOffsetY;
         sliderTextureScale.Value = terrainGenerator.TextureScale;
-checkWireframe.ButtonPressed = terrainGenerator.Wireframe;
+        checkWireframe.ButtonPressed = terrainGenerator.Wireframe;
     }
 
     private void UpdateTerrainProperty(string propertyName, double value)
@@ -265,53 +301,83 @@ checkWireframe.ButtonPressed = terrainGenerator.Wireframe;
         {
             case "NoiseFrequency":
                 terrainGenerator.NoiseFrequency = (float)value / 1000;
+                if (endlessTerrain != null && endlessTerrain.NoiseTemplate != null)
+                    endlessTerrain.NoiseTemplate.Frequency = (float)value / 1000;
                 break;
             case "Octaves":
                 terrainGenerator.Octaves = (int)value;
+                if (endlessTerrain != null && endlessTerrain.NoiseTemplate != null)
+                    endlessTerrain.NoiseTemplate.FractalOctaves = (int)value;
                 break;
             case "Persistence":
                 terrainGenerator.Persistence = (float)value;
+                if (endlessTerrain != null && endlessTerrain.NoiseTemplate != null)
+                    endlessTerrain.NoiseTemplate.FractalGain = (float)value;
                 break;
             case "Lacunarity":
                 terrainGenerator.Lacunarity = (float)value;
+                if (endlessTerrain != null && endlessTerrain.NoiseTemplate != null)
+                    endlessTerrain.NoiseTemplate.FractalLacunarity = (float)value;
                 break;
             case "Size":
                 terrainGenerator.Size = (int)value;
                 break;
             case "Height":
                 terrainGenerator.Height = (int)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.Height = (int)value;
                 break;
             case "Resolution":
                 terrainGenerator.Resolution = (int)value;
                 break;
             case "Flatness":
                 terrainGenerator.Flatness = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.Flatness = (float)value;
                 break;
             case "NoiseMin":
                 terrainGenerator.NoiseMin = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.NoiseMin = (float)value;
                 break;
             case "NoiseMax":
                 terrainGenerator.NoiseMax = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.NoiseMax = (float)value;
                 break;
             case "Smoothness":
                 terrainGenerator.Smoothness = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.Smoothness = (float)value;
                 break;
             case "NoiseOffsetX":
                 terrainGenerator.NoiseOffsetX = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.NoiseOffsetX = (float)value;
                 break;
             case "NoiseOffsetY":
                 terrainGenerator.NoiseOffsetY = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.NoiseOffsetY = (float)value;
                 break;
             case "TextureScale":
                 terrainGenerator.TextureScale = (float)value;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.TextureScale = (float)value;
                 break;
             case "Wireframe":
-                // Interpreta 1.0 como true, 0.0 como false
                 terrainGenerator.Wireframe = value > 0.5;
+                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+                    endlessTerrain.TerrainTemplate.Wireframe = value > 0.5;
                 break;
         }
 
         terrainGenerator.CallDeferred("UpdateMesh");
+
+        if (endlessTerrain != null)
+        {
+            endlessTerrain.CallDeferred("UpdateAllChunks");
+        }
     }
 
     private void OnEditGradientPressed()
@@ -330,11 +396,20 @@ checkWireframe.ButtonPressed = terrainGenerator.Wireframe;
     private void OnGradientChanged()
     {
         terrainGenerator?.CallDeferred("MarkGradientDirty");
+        if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
+        {
+            endlessTerrain.TerrainTemplate.Gradient = terrainGenerator.Gradient;
+            endlessTerrain.CallDeferred("UpdateAllChunks");
+        }
     }
 
     private void OnUpdatePressed()
     {
         terrainGenerator?.CallDeferred("UpdateMesh");
+        if (endlessTerrain != null)
+        {
+            endlessTerrain.CallDeferred("UpdateAllChunks");
+        }
     }
 
     public override void _ExitTree()
