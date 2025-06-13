@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 project/assembly_name="PGodot"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/main_screen/plugin.cfg")
+
 [input]
 
 forward={
