@@ -3,8 +3,8 @@
   "WorkspaceRootPath": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\addons\\ProceduralGeneration\\ProceduralGeneration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:addons\\ProceduralGeneration\\ProceduralGeneration.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\addons\\PGodot\\DockAppear.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:addons\\PGodot\\DockAppear.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8EC93B10-4343-479D-B4D2-F2D1A11F42EF}|PGodot.csproj|c:\\users\\marce\\documents\\github\\pgodot\\pgodot\\terraindata\\endlessterrain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "TerrainData\\EndlessTerrain.cs",
               "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\TerrainData\\EndlessTerrain.cs",
               "RelativeToolTip": "TerrainData\\EndlessTerrain.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAAAAF8AAAA8AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-09T13:32:06.47Z",
               "IsPinned": true,
@@ -41,14 +41,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "ProceduralGeneration.cs",
-              "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\addons\\ProceduralGeneration\\ProceduralGeneration.cs",
-              "RelativeDocumentMoniker": "addons\\ProceduralGeneration\\ProceduralGeneration.cs",
-              "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\addons\\ProceduralGeneration\\ProceduralGeneration.cs",
-              "RelativeToolTip": "addons\\ProceduralGeneration\\ProceduralGeneration.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABAAAAAFAAAAAAAAAA==",
+              "Title": "DockAppear.cs",
+              "DocumentMoniker": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\addons\\PGodot\\DockAppear.cs",
+              "RelativeDocumentMoniker": "addons\\PGodot\\DockAppear.cs",
+              "ToolTip": "C:\\Users\\marce\\Documents\\GitHub\\PGodot\\pgodot\\addons\\PGodot\\DockAppear.cs",
+              "RelativeToolTip": "addons\\PGodot\\DockAppear.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAxwBkAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-13T11:47:55.409Z",
+              "WhenOpened": "2025-06-13T15:24:06.22Z",
               "EditorCaption": ""
             },
             {

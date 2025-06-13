@@ -21,7 +21,7 @@ project/assembly_name="PGodot"
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/PGodot/plugin.cfg", "res://addons/Test/plugin.cfg")
 
 [input]
 
