@@ -1,7 +1,7 @@
 @tool
 extends EditorPlugin
 
-const MainPanel = preload("res://addons/main_screen/main_panel.tscn")
+const MainPanel = preload("res://addons/ProceduralGeneration/Scene_UI/SceneEditableTerrain.tscn")
 
 var main_panel_instance
 
@@ -29,11 +29,11 @@ func _make_visible(visible):
 
 # If your plugin doesn't handle any node types, you can remove this method.
 func _handles(object):
-	return is_instance_of(object, preload("res://addons/main_screen/handled_by_main_screen.gd"))
+	return is_instance_of(object, preload("res://addons/ProceduralGeneration/Scene_UI/SceneEditableTerrain.tscn"))
 
 
 func _get_plugin_name():
-	return "Main Screen Plugin"
+	return "ProceduralGeneration Editor"
 
 
 func _get_plugin_icon():
