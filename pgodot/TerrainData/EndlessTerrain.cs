@@ -81,46 +81,45 @@ public partial class EndlessTerrain : Node3D
 
     private void CreateNewChunk(Vector2 coord, Vector2 position)
     {
-        TerrainGenerator newChunk;
-        if (TerrainTemplate != null)
-        {
-            // Duplicate the template to inherit all properties
-            newChunk = TerrainTemplate.Duplicate() as TerrainGenerator;
-        }
-        else
-        {
-            newChunk = new TerrainGenerator();
-        }
+        // 1. Crear nuevo chunk duplicando el template (si existe)
+        TerrainGenerator newChunk = TerrainTemplate != null ? 
+            (TerrainGenerator)TerrainTemplate.Duplicate() : 
+            new TerrainGenerator();
 
+        // 2. Añadir al árbol de escena primero (importante para inicialización)
         AddChild(newChunk);
 
-        // Apply noise template if specified
+        // 3. Configurar propiedades esenciales
+        newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
+        newChunk.Position = new Vector3(position.X, 0, position.Y);
+        
+        // 4. Configurar noise específico si se usa template
         if (NoiseTemplate != null)
         {
-            newChunk.Noise = NoiseTemplate.Duplicate() as FastNoiseLite;
+            newChunk.Noise = (FastNoiseLite)NoiseTemplate.Duplicate();
         }
 
-        // Apply settings from template if needed
+        // 5. Inicializar con parámetros actualizados
+        newChunk.Initialize(position, ChunkSize);
+        
+        // 6. Forzar actualización de parámetros
         if (TerrainTemplate != null)
         {
-            CopyAllParametersToChunk(newChunk);
+            CopyAllParametersToChunk(newChunk, true);
         }
 
-        newChunk.ConfigureNoise();
-        newChunk.Initialize(position, ChunkSize);
-        newChunk.Position = new Vector3(position.X, 0, position.Y);
-        newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
+        // 7. Actualizar físicas y visibilidad
         newChunk.UpdateCollisions();
+        newChunk.Visible = IsChunkVisible(position);
 
         _terrainChunks.Add(coord, newChunk);
         _lastVisibleChunks.Add(newChunk);
     }
-
-    private void CopyAllParametersToChunk(TerrainGenerator chunk)
+    private void CopyAllParametersToChunk(TerrainGenerator chunk, bool forceUpdate = false)
     {
         if (TerrainTemplate == null) return;
 
-        // Copy terrain parameters
+        // Copiar todos los parámetros exportables
         chunk.Flatness = TerrainTemplate.Flatness;
         chunk.Height = TerrainTemplate.Height;
         chunk.Resolution = TerrainTemplate.Resolution;
@@ -129,16 +128,21 @@ public partial class EndlessTerrain : Node3D
         chunk.NoiseMax = TerrainTemplate.NoiseMax;
         chunk.Wireframe = TerrainTemplate.Wireframe;
         chunk.TextureScale = TerrainTemplate.TextureScale;
-        chunk.Gradient = TerrainTemplate.Gradient;
-        chunk.HeightCurve = TerrainTemplate.HeightCurve;
+        chunk.Smoothness = TerrainTemplate.Smoothness;
         chunk.Octaves = TerrainTemplate.Octaves;
         chunk.Persistence = TerrainTemplate.Persistence;
         chunk.Lacunarity = TerrainTemplate.Lacunarity;
         chunk.NoiseOffsetX = TerrainTemplate.NoiseOffsetX;
         chunk.NoiseOffsetY = TerrainTemplate.NoiseOffsetY;
-        chunk.Smoothness = TerrainTemplate.Smoothness;
 
-        // Copy noise parameters
+        // Copiar recursos (importante hacer Duplicate() para evitar compartir referencias)
+        chunk.Gradient = TerrainTemplate.Gradient != null ?
+            (Gradient)TerrainTemplate.Gradient.Duplicate() : null;
+
+        chunk.HeightCurve = TerrainTemplate.HeightCurve != null ?
+            (Curve)TerrainTemplate.HeightCurve.Duplicate() : null;
+
+        // Configuración especial para el noise
         if (TerrainTemplate.Noise != null && chunk.Noise != null)
         {
             chunk.Noise.Frequency = TerrainTemplate.Noise.Frequency;
@@ -146,6 +150,12 @@ public partial class EndlessTerrain : Node3D
             chunk.Noise.FractalGain = TerrainTemplate.Noise.FractalGain;
             chunk.Noise.FractalLacunarity = TerrainTemplate.Noise.FractalLacunarity;
             chunk.Noise.NoiseType = TerrainTemplate.Noise.NoiseType;
+        }
+
+        if (forceUpdate)
+        {
+            chunk.ConfigureNoise();
+            chunk.UpdateMesh();
         }
     }
 }

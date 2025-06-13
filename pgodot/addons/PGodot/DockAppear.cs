@@ -245,6 +245,7 @@ public partial class DockAppear : EditorPlugin
         {
             GD.PrintErr("No scene root found");
         }
+
     }
 
     private void FindGeneratorsRecursive(Node node, List<TerrainGenerator> generators)

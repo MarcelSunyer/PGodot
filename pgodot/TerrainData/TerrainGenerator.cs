@@ -309,7 +309,7 @@ public partial class TerrainGenerator : MeshInstance3D
         {
             TerrainManager.Instance.CurrentTerrain = this;
         }
-        this.Visible = false;
+        //this.Visible = false;
         UpdateMesh();
     }
 
