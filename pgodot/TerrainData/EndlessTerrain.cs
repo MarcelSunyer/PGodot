@@ -94,8 +94,8 @@ public partial class EndlessTerrain : Node3D
 
         newChunk.Position = new Vector3(position.X, 0, position.Y);
         newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
-        newChunk.Noise.Frequency = frequency;
         newChunk.UpdateCollisions();
+        newChunk.UpdateMesh();
 
         _terrainChunks.Add(coord, newChunk);
         _lastVisibleChunks.Add(newChunk);

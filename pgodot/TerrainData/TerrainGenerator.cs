@@ -40,6 +40,21 @@ public partial class TerrainGenerator : MeshInstance3D
     }
 
     [ExportGroup("Terrain Settings")]
+    public float _noiseFrequency = 10;
+
+
+    [Export(PropertyHint.None, "Frequency of the noise")]
+    public float NoiseFrequency
+    {
+        get => _noiseFrequency /1000;
+        set
+        {
+            if (_noiseFrequency == value) return;
+            _noiseFrequency = value;
+            ConfigureNoise();
+            if (Engine.IsEditorHint()) UpdateMesh();
+        }
+    }
     [Export(PropertyHint.Range, "0.1,10,0.1")]
     public float Flatness { get; set; } = 1.0f;
     [Export(PropertyHint.Range, "1,1000,1")]
@@ -79,19 +94,7 @@ public partial class TerrainGenerator : MeshInstance3D
     }
 
     [ExportGroup("Noise Settings")]
-    private float _noiseFrequency = 0.05f;
-    [Export(PropertyHint.None, "Frequency of the noise")]
-    public float NoiseFrequency
-    {
-        get => _noiseFrequency;
-        set
-        {
-            if (_noiseFrequency == value) return;
-            _noiseFrequency = value;
-            ConfigureNoise();
-            if (Engine.IsEditorHint()) UpdateMesh();
-        }
-    }
+
 
     [Export(PropertyHint.Range, "0,100,0.1")]
     public float NoiseMin { get; set; } = 0f;
@@ -183,6 +186,12 @@ public partial class TerrainGenerator : MeshInstance3D
     private bool _gradientDirty = true;
     private bool _collisionsCreated = false;
 
+
+    private new void Ready()
+    {
+        this.Visible = false;
+        UpdateMesh();
+    }
     public override void _Notification(int what)
     {
         if (what == NotificationPredelete)
@@ -201,7 +210,7 @@ public partial class TerrainGenerator : MeshInstance3D
         }
 
         _noise.NoiseType = FastNoiseLite.NoiseTypeEnum.Simplex;
-        _noise.Frequency = NoiseFrequency;
+        _noise.Frequency = _noiseFrequency / 1000;
         _noise.FractalOctaves = Octaves;
         _noise.FractalGain = Persistence;
         _noise.FractalLacunarity = Lacunarity;
@@ -336,6 +345,7 @@ public partial class TerrainGenerator : MeshInstance3D
         _cachedMaterial.SetShaderParameter("height", Height);
         _cachedMaterial.SetShaderParameter("gradient_tex", _gradientTexture);
         _cachedMaterial.SetShaderParameter("texture_scale", TextureScale);
+        
 
         surfaceTool.SetMaterial(_cachedMaterial);
         Mesh = surfaceTool.Commit();
