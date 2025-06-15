@@ -12,6 +12,7 @@ public partial class DockAppear : EditorPlugin
 
     // UI Controls
     private Button btnUpdate;
+    private Button btnExportScene;
     private HSlider sliderFrequency;
     private HSlider sliderOctaves;
     private HSlider sliderPersistence;
@@ -87,6 +88,14 @@ public partial class DockAppear : EditorPlugin
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
         };
         vbox.AddChild(btnUpdate);
+
+        // Export Scene Button
+        btnExportScene = new Button
+        {
+            Text = "Export as Scene",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        vbox.AddChild(btnExportScene);
         vbox.AddChild(new HSeparator());
 
         // Control Groups
@@ -194,6 +203,7 @@ public partial class DockAppear : EditorPlugin
     {
         btnUpdate.Pressed += OnUpdatePressed;
         btnEditGradient.Pressed += OnEditGradientPressed;
+        btnExportScene.Pressed += OnExportScenePressed;
 
         sliderFrequency.ValueChanged += (value) => UpdateTerrainProperty("NoiseFrequency", value);
         sliderOctaves.ValueChanged += (value) => UpdateTerrainProperty("Octaves", value);
@@ -245,7 +255,6 @@ public partial class DockAppear : EditorPlugin
         {
             GD.PrintErr("No scene root found");
         }
-
     }
 
     private void FindGeneratorsRecursive(Node node, List<TerrainGenerator> generators)
@@ -281,7 +290,6 @@ public partial class DockAppear : EditorPlugin
         sliderFlatness.Value = terrainGenerator.Flatness;
         sliderNoiseMin.Value = terrainGenerator.NoiseMin;
         sliderNoiseMax.Value = terrainGenerator.NoiseMax;
-        sliderSmoothness.Value = terrainGenerator.Smoothness;
         sliderOffsetX.Value = terrainGenerator.NoiseOffsetX;
         sliderOffsetY.Value = terrainGenerator.NoiseOffsetY;
         sliderTextureScale.Value = terrainGenerator.TextureScale;
@@ -346,11 +354,6 @@ public partial class DockAppear : EditorPlugin
                 if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
                     endlessTerrain.TerrainTemplate.NoiseMax = (float)value;
                 break;
-            case "Smoothness":
-                terrainGenerator.Smoothness = (float)value;
-                if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
-                    endlessTerrain.TerrainTemplate.Smoothness = (float)value;
-                break;
             case "NoiseOffsetX":
                 terrainGenerator.NoiseOffsetX = (float)value;
                 if (endlessTerrain != null && endlessTerrain.TerrainTemplate != null)
@@ -413,6 +416,90 @@ public partial class DockAppear : EditorPlugin
         }
     }
 
+    private void OnExportScenePressed()
+    {
+        var editorInterface = EditorInterface.Singleton;
+        var editedSceneRoot = editorInterface.GetEditedSceneRoot();
+
+        if (editedSceneRoot == null)
+        {
+            GD.PrintErr("No scene is currently open");
+            return;
+        }
+
+        // Create a root node for the exported scene
+        Node exportRoot = new Node3D();
+        exportRoot.Name = "ExportedTerrainScene";
+
+        // Find and duplicate the TerrainGenerator
+        Node terrainGeneratorNode = editedSceneRoot.FindChild("TerrainGenerator", true, false) as Node;
+        if (terrainGeneratorNode != null)
+        {
+            Node terrainCopy = terrainGeneratorNode.Duplicate();
+            exportRoot.AddChild(terrainCopy);
+            terrainCopy.Owner = exportRoot;
+        }
+        else
+        {
+            GD.PrintErr("TerrainGenerator node not found in the scene");
+        }
+
+        // Find and duplicate the EndlessTerrain
+        Node endlessTerrainNode = editedSceneRoot.FindChild("EndlessTerrain", true, false) as Node;
+        if (endlessTerrainNode != null)
+        {
+            Node endlessTerrainCopy = endlessTerrainNode.Duplicate();
+            exportRoot.AddChild(endlessTerrainCopy);
+            endlessTerrainCopy.Owner = exportRoot;
+        }
+        else
+        {
+            GD.Print("EndlessTerrain node not found in the scene - exporting without endless terrain");
+        }
+
+        // Find and duplicate the Player
+        Node playerNode = editedSceneRoot.FindChild("Player", true, false) as Node;
+        if (playerNode != null)
+        {
+            Node playerCopy = playerNode.Duplicate();
+            exportRoot.AddChild(playerCopy);
+            playerCopy.Owner = exportRoot;
+        }
+        else
+        {
+            GD.Print("Player node not found in the scene - exporting without player");
+        }
+
+        // Specify export path
+        string exportPath = "res://addons/PGodot/TerrainsGenerated/";
+        string sceneName = $"TerrainExport_{DateTime.Now:yyyyMMdd_HHmmss}.tscn";
+
+        // Create directory if it doesn't exist
+        if (!DirAccess.DirExistsAbsolute(exportPath))
+        {
+            DirAccess.MakeDirRecursiveAbsolute(exportPath);
+        }
+
+        // Create and save the new scene
+        PackedScene packedScene = new PackedScene();
+        packedScene.Pack(exportRoot);
+
+        Error error = ResourceSaver.Save(packedScene, exportPath + sceneName);
+
+        if (error == Error.Ok)
+        {
+            GD.Print($"Scene exported successfully to: {exportPath + sceneName}");
+            // Refresh the file system to make the new scene visible in the editor
+            EditorInterface.Singleton.GetResourceFilesystem().Scan();
+        }
+        else
+        {
+            GD.PrintErr($"Failed to export scene. Error: {error}");
+        }
+
+        // Clean up
+        exportRoot.QueueFree();
+    }
     public override void _ExitTree()
     {
         if (terrainGenerator != null && terrainGenerator.Gradient != null)

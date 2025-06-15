@@ -6,19 +6,8 @@ public partial class TerrainGenerator : MeshInstance3D
 {
     public static TerrainManager TerrainManager { get; set; }
 
-    [ExportToolButton("Update Parameters")]
-    public Callable ClickMeButton => Callable.From(UpdateTerrain);
-    private void UpdateTerrain()
-    {
-        if (Engine.IsEditorHint())
-        {
-            _gradientDirty = true;
-            _baseGridDirty = true;
-            UpdateMesh();
-        }
-    }
-
-    private FastNoiseLite _noise;
+    [Export]
+    public FastNoiseLite _noise;
     public FastNoiseLite Noise
     {
         get => _noise;
@@ -39,8 +28,8 @@ public partial class TerrainGenerator : MeshInstance3D
                 UpdateMesh();
         }
     }
-
-    private float _noiseFrequency = 10;
+    [Export]
+    public float _noiseFrequency = 10;
     public float NoiseFrequency
     {
         get => _noiseFrequency / 1000;
@@ -58,7 +47,8 @@ public partial class TerrainGenerator : MeshInstance3D
         _gradientDirty = true;
         QueueUpdate();
     }
-    private float _flatness = 1.0f;
+    [Export]
+    public float _flatness = 1.0f;
     public float Flatness
     {
         get => _flatness;
@@ -69,8 +59,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private int _size = 32;
+    [Export]
+    public int _size = 32;
     public int Size
     {
         get => _size;
@@ -82,8 +72,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private int _height = 32;
+    [Export]
+    public int _height = 32;
     public int Height
     {
         get => _height;
@@ -94,8 +84,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private int _resolution = 4;
+    [Export]
+    public int _resolution = 4;
     public int Resolution
     {
         get => _resolution;
@@ -107,8 +97,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private Curve _heightCurve;
+    [Export]
+    public Curve _heightCurve;
     public Curve HeightCurve
     {
         get => _heightCurve;
@@ -119,9 +109,9 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private Gradient _gradient;
     [Export]
+    public Gradient _gradient;
+
     public Gradient Gradient
     {
         get => _gradient;
@@ -147,8 +137,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _noiseMin = 0f;
+    [Export]
+    public float _noiseMin = 0f;
     public float NoiseMin
     {
         get => _noiseMin;
@@ -159,8 +149,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _noiseMax = 100f;
+    [Export]
+    public float _noiseMax = 100f;
     public float NoiseMax
     {
         get => _noiseMax;
@@ -172,19 +162,9 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    private float _smoothness = 0.5f;
-    public float Smoothness
-    {
-        get => _smoothness;
-        set
-        {
-            if (Mathf.Abs(_smoothness - value) < 0.001f) return;
-            _smoothness = value;
-            QueueUpdate();
-        }
-    }
 
-    private int _octaves = 4;
+    [Export]
+    public int _octaves = 4;
     public int Octaves
     {
         get => _octaves;
@@ -196,8 +176,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _persistence = 0.5f;
+    [Export]
+    public float _persistence = 0.5f;
     public float Persistence
     {
         get => _persistence;
@@ -209,8 +189,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _lacunarity = 2.0f;
+    [Export]
+    public float _lacunarity = 2.0f;
     public float Lacunarity
     {
         get => _lacunarity;
@@ -222,8 +202,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _noiseOffsetX = 0f;
+    [Export]
+    public float _noiseOffsetX = 0f;
     public float NoiseOffsetX
     {
         get => _noiseOffsetX;
@@ -234,8 +214,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _noiseOffsetY = 0f;
+    [Export]
+    public float _noiseOffsetY = 0f;
     public float NoiseOffsetY
     {
         get => _noiseOffsetY;
@@ -246,8 +226,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private bool _wireframe = false;
+    [Export]
+    public bool _wireframe = false;
     public bool Wireframe
     {
         get => _wireframe;
@@ -258,8 +238,8 @@ public partial class TerrainGenerator : MeshInstance3D
             QueueUpdate();
         }
     }
-
-    private float _textureScale = 1.0f;
+    [Export]
+    public float _textureScale = 1.0f;
     public float TextureScale
     {
         get => _textureScale;
@@ -271,17 +251,17 @@ public partial class TerrainGenerator : MeshInstance3D
         }
     }
 
-    private Vector2 _chunkPosition;
-    private Texture2D _gradientTexture;
-    private Vector3[] _baseVertices;
-    private int[] _indices;
-    private Vector2[] _uvs;
-    private bool _baseGridDirty = true;
-    private ShaderMaterial _cachedMaterial;
-    private bool _gradientDirty = true;
-    private bool _collisionsCreated = false;
+    public Vector2 _chunkPosition;
+    public Texture2D _gradientTexture;
+    public Vector3[] _baseVertices;
+    public int[] _indices;
+    public Vector2[] _uvs;
+    public bool _baseGridDirty = true;
+    public ShaderMaterial _cachedMaterial;
+    public bool _gradientDirty = true;
+    public bool _collisionsCreated = false;
 
-    private void InitializeDefaultGradient()
+    public void InitializeDefaultGradient()
     {
         Gradient = new Gradient();
         Gradient.SetOffset(0, 0.0f);

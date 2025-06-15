@@ -1,5 +1,6 @@
 ﻿using Godot;
 using System.Collections.Generic;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public partial class EndlessTerrain : Node3D
 {
@@ -20,12 +21,25 @@ public partial class EndlessTerrain : Node3D
     {
         frequency = frequency / 1000;
         _chunksVisibleInViewDst = Mathf.RoundToInt(ViewDistance / ChunkSize);
+        if (Player == null)
+        {
+            GD.Print("Player not found");
+            // Refresh the file system to make the new scene visible in the editor
+            EditorInterface.Singleton.GetResourceFilesystem().Scan();
+        }
+       
     }
 
     public override void _Process(double delta)
     {
-        _playerPosition = new Vector2(Player.Position.X, Player.Position.Z);
-        UpdateVisibleChunks();
+        if (Player != null)
+        {
+            _playerPosition = new Vector2(Player.Position.X, Player.Position.Z);
+        }
+        else{
+            _playerPosition = new Vector2(0, 0);
+        }
+            UpdateVisibleChunks();
     }
 
     public void UpdateAllChunks()
@@ -128,7 +142,6 @@ public partial class EndlessTerrain : Node3D
         chunk.NoiseMax = TerrainTemplate.NoiseMax;
         chunk.Wireframe = TerrainTemplate.Wireframe;
         chunk.TextureScale = TerrainTemplate.TextureScale;
-        chunk.Smoothness = TerrainTemplate.Smoothness;
         chunk.Octaves = TerrainTemplate.Octaves;
         chunk.Persistence = TerrainTemplate.Persistence;
         chunk.Lacunarity = TerrainTemplate.Lacunarity;
