@@ -21,13 +21,42 @@ public partial class EndlessTerrain : Node3D
     {
         frequency = frequency / 1000;
         _chunksVisibleInViewDst = Mathf.RoundToInt(ViewDistance / ChunkSize);
+
+        // Find Player by name if not set in inspector
         if (Player == null)
         {
-            GD.Print("Player not found");
-            // Refresh the file system to make the new scene visible in the editor
-            EditorInterface.Singleton.GetResourceFilesystem().Scan();
+            Player = GetTree().CurrentScene.FindChild("Player", true) as Node3D;
+
+            if (Player == null)
+            {
+                GD.PrintErr("Player node not found in scene!");
+            }
         }
-       
+
+        // Find TerrainGenerator under node named "node1"
+        if (TerrainTemplate == null)
+        {
+            var node1 = GetTree().CurrentScene.FindChild("node1", true);
+            if (node1 != null)
+            {
+                foreach (Node child in node1.GetChildren())
+                {
+                    if (child is TerrainGenerator terrainGen)
+                    {
+                        TerrainTemplate = terrainGen;
+                        break;
+                    }
+                }
+            }
+
+            if (TerrainTemplate == null)
+            {
+                GD.PrintErr("TerrainGenerator template not found under node1!");
+            }
+        }
+
+        // Refresh the file system to make the new scene visible in the editor
+        EditorInterface.Singleton.GetResourceFilesystem().Scan();
     }
 
     public override void _Process(double delta)
@@ -36,10 +65,11 @@ public partial class EndlessTerrain : Node3D
         {
             _playerPosition = new Vector2(Player.Position.X, Player.Position.Z);
         }
-        else{
+        else
+        {
             _playerPosition = new Vector2(0, 0);
         }
-            UpdateVisibleChunks();
+        UpdateVisibleChunks();
     }
 
     public void UpdateAllChunks()
@@ -95,45 +125,38 @@ public partial class EndlessTerrain : Node3D
 
     private void CreateNewChunk(Vector2 coord, Vector2 position)
     {
-        // 1. Crear nuevo chunk duplicando el template (si existe)
-        TerrainGenerator newChunk = TerrainTemplate != null ? 
-            (TerrainGenerator)TerrainTemplate.Duplicate() : 
+        TerrainGenerator newChunk = TerrainTemplate != null ?
+            (TerrainGenerator)TerrainTemplate.Duplicate() :
             new TerrainGenerator();
 
-        // 2. Añadir al árbol de escena primero (importante para inicialización)
         AddChild(newChunk);
 
-        // 3. Configurar propiedades esenciales
         newChunk.Name = $"TerrainChunk_{coord.X}_{coord.Y}";
         newChunk.Position = new Vector3(position.X, 0, position.Y);
-        
-        // 4. Configurar noise específico si se usa template
+
         if (NoiseTemplate != null)
         {
             newChunk.Noise = (FastNoiseLite)NoiseTemplate.Duplicate();
         }
 
-        // 5. Inicializar con parámetros actualizados
         newChunk.Initialize(position, ChunkSize);
-        
-        // 6. Forzar actualización de parámetros
+
         if (TerrainTemplate != null)
         {
             CopyAllParametersToChunk(newChunk, true);
         }
 
-        // 7. Actualizar físicas y visibilidad
         newChunk.UpdateCollisions();
         newChunk.Visible = IsChunkVisible(position);
 
         _terrainChunks.Add(coord, newChunk);
         _lastVisibleChunks.Add(newChunk);
     }
+
     private void CopyAllParametersToChunk(TerrainGenerator chunk, bool forceUpdate = false)
     {
         if (TerrainTemplate == null) return;
 
-        // Copiar todos los parámetros exportables
         chunk.Flatness = TerrainTemplate.Flatness;
         chunk.Height = TerrainTemplate.Height;
         chunk.Resolution = TerrainTemplate.Resolution;
@@ -148,14 +171,12 @@ public partial class EndlessTerrain : Node3D
         chunk.NoiseOffsetX = TerrainTemplate.NoiseOffsetX;
         chunk.NoiseOffsetY = TerrainTemplate.NoiseOffsetY;
 
-        // Copiar recursos (importante hacer Duplicate() para evitar compartir referencias)
         chunk.Gradient = TerrainTemplate.Gradient != null ?
             (Gradient)TerrainTemplate.Gradient.Duplicate() : null;
 
         chunk.HeightCurve = TerrainTemplate.HeightCurve != null ?
             (Curve)TerrainTemplate.HeightCurve.Duplicate() : null;
 
-        // Configuración especial para el noise
         if (TerrainTemplate.Noise != null && chunk.Noise != null)
         {
             chunk.Noise.Frequency = TerrainTemplate.Noise.Frequency;
