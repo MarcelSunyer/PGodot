@@ -1,6 +1,5 @@
 ﻿using Godot;
 using System.Collections.Generic;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public partial class EndlessTerrain : Node3D
 {
@@ -16,6 +15,8 @@ public partial class EndlessTerrain : Node3D
     private Dictionary<Vector2, TerrainGenerator> _terrainChunks = new();
     private List<TerrainGenerator> _lastVisibleChunks = new();
     private Vector2 _playerPosition;
+
+
 
     public override void _Ready()
     {
@@ -55,8 +56,25 @@ public partial class EndlessTerrain : Node3D
             }
         }
 
-        // Refresh the file system to make the new scene visible in the editor
-        EditorInterface.Singleton.GetResourceFilesystem().Scan();
+        // Editor-only filesystem refresh
+        RefreshEditorFilesystem();
+    }
+
+    private void RefreshEditorFilesystem()
+    {
+#if TOOLS
+        if (Engine.IsEditorHint())
+        {
+            try
+            {
+                EditorInterface.Singleton?.GetResourceFilesystem()?.Scan();
+            }
+            catch (System.Exception e)
+            {
+                GD.Print("Editor filesystem refresh skipped (not in editor): ", e.Message);
+            }
+        }
+#endif
     }
 
     public override void _Process(double delta)
@@ -118,6 +136,7 @@ public partial class EndlessTerrain : Node3D
 
     private bool IsChunkVisible(Vector2 chunkPosition)
     {
+        if (Player == null) return false;
         Vector2 viewerPos = new Vector2(Player.Position.X, Player.Position.Z);
         float distance = chunkPosition.DistanceTo(viewerPos);
         return distance <= ViewDistance;

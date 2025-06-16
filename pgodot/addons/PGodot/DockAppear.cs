@@ -29,6 +29,7 @@ public partial class DockAppear : EditorPlugin
     private CheckBox checkWireframe;
     private Button btnEditGradient;
 
+    private static int _exportCounter = 1; // Static counter for sequential naming
     public override void _EnterTree()
     {
         mainPanelInstance = new Control();
@@ -397,15 +398,6 @@ public partial class DockAppear : EditorPlugin
         }
     }
 
-    private void OnUpdatePressed()
-    {
-        terrainGenerator?.CallDeferred("UpdateMesh");
-        if (endlessTerrain != null)
-        {
-            endlessTerrain.CallDeferred("UpdateAllChunks");
-        }
-    }
-
     private void OnExportScenePressed()
     {
         var editorInterface = EditorInterface.Singleton;
@@ -431,11 +423,21 @@ public partial class DockAppear : EditorPlugin
         exportRoot.Name = "TerrainExport";
 
         // Función recursiva para duplicar nodo con todos sus hijos
-        void DuplicateNodeHierarchy(Node original, Node parent)
+        void DuplicateNodeHierarchy(Node original, Node parent, bool disableNode = false)
         {
             Node duplicate = original.Duplicate();
             parent.AddChild(duplicate);
             duplicate.Owner = exportRoot;
+
+            // Desactivar el nodo si se solicita
+            if (disableNode)
+            {
+                if (duplicate is Node3D node3d)
+                {
+                    node3d.Visible = false;
+                }
+                duplicate.ProcessMode = ProcessModeEnum.Disabled;
+            }
 
             foreach (Node child in original.GetChildren())
             {
@@ -443,10 +445,10 @@ public partial class DockAppear : EditorPlugin
             }
         }
 
-        // Duplicar el TerrainGenerator y su jerarquía completa
-        DuplicateNodeHierarchy(terrainGeneratorNode, exportRoot);
+        // Duplicar el TerrainGenerator y su jerarquía completa (desactivado)
+        DuplicateNodeHierarchy(terrainGeneratorNode, exportRoot, true);
 
-        // 4. Exportar EndlessTerrain (solo el nodo principal)
+        // Exportar EndlessTerrain (solo el nodo principal)
         Node endlessTerrain = editedSceneRoot.FindChild("EndlessTerrain", true, false);
         if (endlessTerrain != null)
         {
@@ -460,36 +462,45 @@ public partial class DockAppear : EditorPlugin
             GD.Print("⚠️ EndlessTerrain no encontrado (exportando sin él)");
         }
 
-        // 5. Exportar Player (solo el nodo principal)
-        Node player = editedSceneRoot.FindChild("Player", true, false);
+        // Exportar Player/Reference (solo el nodo principal)
+        Node player = editedSceneRoot.FindChild("Reference", true, false);
         if (player != null)
         {
             Node playerCopy = player.Duplicate();
             exportRoot.AddChild(playerCopy);
             playerCopy.Owner = exportRoot;
-            GD.Print("Player exportado");
+            GD.Print("Reference exportado");
         }
         else
         {
-            GD.Print("⚠️ Player no encontrado (exportando sin él)");
+            GD.Print("⚠️ Reference no encontrado (exportando sin él)");
         }
 
-        // 6. Guardar la escena
-        string exportPath = "res://addons/PGodot/TerrainsGenerated/";
-        string fileName = $"TerrainExport_{DateTime.Now:yyyyMMdd_HHmmss}.tscn";
+        // Configurar ruta y nombre del archivo
+        string exportPath = "res://TerrainsGenerated/";
+        string fileName = $"TerrainExport_{_exportCounter++}.tscn"; // Nombre secuencial
 
+        // Crear directorio si no existe
         if (!DirAccess.DirExistsAbsolute(exportPath))
         {
             DirAccess.MakeDirRecursiveAbsolute(exportPath);
         }
 
+        // Guardar la escena
         PackedScene packedScene = new PackedScene();
         packedScene.Pack(exportRoot);
 
         if (ResourceSaver.Save(packedScene, exportPath + fileName) == Error.Ok)
         {
-            GD.Print($"✅ Escena guardada en: {exportPath + fileName}");
-            EditorInterface.Singleton.GetResourceFilesystem().Scan();
+            GD.Print($"✅ Escena guardada como: {exportPath + fileName}");
+
+            // Actualizar sistema de archivos (solo en editor)
+#if TOOLS
+            if (Engine.IsEditorHint())
+            {
+                EditorInterface.Singleton?.GetResourceFilesystem()?.Scan();
+            }
+#endif
         }
         else
         {
