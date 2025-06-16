@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b4qalk4au8veb"]
 
-[ext_resource type="PackedScene" uid="uid://cta66u12olo6p" path="res://addons/PGodot/TerrainsGenerated/TerrainExport_20250616_130910.tscn" id="1_baq1o"]
+[ext_resource type="PackedScene" uid="uid://cta66u12olo6p" path="res://addons/PGodot/Plane/TerrainExport_20250616_130910.tscn" id="1_baq1o"]
 
 [node name="Test!" type="Node2D"]
 

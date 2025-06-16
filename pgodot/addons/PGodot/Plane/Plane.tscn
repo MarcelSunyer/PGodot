@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://cmbr5jjwa3nbe"]
+
+[ext_resource type="Script" uid="uid://dx6d08ivmss1h" path="res://addons/PGodot/Plane/PlaneController.cs" id="1_nigp8"]
+[ext_resource type="PackedScene" uid="uid://7c1qbcwpt1ov" path="res://addons/PGodot/Plane/imported/Plane.blend" id="2_3cjlr"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_qgy06"]
+height = 5.89689
+radius = 1.03027
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ic4le"]
+size = Vector3(2.635, 1, 1)
+
+[node name="Plane" type="CharacterBody3D"]
+motion_mode = 1
+script = ExtResource("1_nigp8")
+YawSpeed = 117.0
+PitchSpeed = 105.0
+
+[node name="Plane2" parent="." instance=ExtResource("2_3cjlr")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.0151838, 0.999885, 0, -0.999885, 0.0151838, 0, 0, 0.759901)
+shape = SubResource("CylinderShape3D_qgy06")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.27412, -1.15221)
+shape = SubResource("BoxShape3D_ic4le")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.961117, 0.276141, 0, -0.276141, 0.961117, 0, 6.18132, 12.1372)
+fov = 59.1826
