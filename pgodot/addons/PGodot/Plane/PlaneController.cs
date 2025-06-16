@@ -11,8 +11,8 @@ public partial class PlaneController : CharacterBody3D
     [Export] public float CurrentSpeed = 50.0f;
 
     // Rotation parameters (in degrees)
-    [Export] public float YawSpeed = 45.0f;
-    [Export] public float PitchSpeed = 45.0f;
+    [Export] public float YawSpeed = 30.0f;
+    [Export] public float PitchSpeed = 30.0f;
     [Export] public float RollSpeed = 45.0f;
 
     // Node references

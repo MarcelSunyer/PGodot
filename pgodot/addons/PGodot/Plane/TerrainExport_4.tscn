@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=4 uid="uid://cmoy72s1827kd"]
+[gd_scene load_steps=15 format=4 uid="uid://ug3cq0r7tojh"]
 
 [ext_resource type="Shader" uid="uid://c14o076oj8h88" path="res://addons/PGodot/TerrainData/terrain.gdshader" id="1_2mea0"]
 [ext_resource type="Script" uid="uid://dkidfbuy5g0gm" path="res://addons/PGodot/TerrainData/TerrainGenerator.cs" id="2_3h8hi"]
