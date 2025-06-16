@@ -25,18 +25,18 @@ public partial class EndlessTerrain : Node3D
         // Find Player by name if not set in inspector
         if (Player == null)
         {
-            Player = GetTree().CurrentScene.FindChild("Player", true) as Node3D;
+            Player = GetTree().CurrentScene.FindChild("Reference", true) as Node3D;
 
             if (Player == null)
             {
-                GD.PrintErr("Player node not found in scene!");
+                GD.PrintErr("Reference node not found in scene, setting the reference on 0,0,0!");
             }
         }
 
         // Find TerrainGenerator under node named "node1"
         if (TerrainTemplate == null)
         {
-            var node1 = GetTree().CurrentScene.FindChild("node1", true);
+            var node1 = GetTree().CurrentScene.FindChild("TerrainGenerator", true);
             if (node1 != null)
             {
                 foreach (Node child in node1.GetChildren())
@@ -51,7 +51,7 @@ public partial class EndlessTerrain : Node3D
 
             if (TerrainTemplate == null)
             {
-                GD.PrintErr("TerrainGenerator template not found under node1!");
+                GD.PrintErr("TerrainGenerator template not found under TerrainGenerator node!");
             }
         }
 

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bkli080f5p5ga"]
+
+[ext_resource type="PackedScene" uid="uid://cu2im2gvlshl0" path="res://addons/PGodot/TerrainsGenerated/TerrainExport_20250616_125507.tscn" id="1_rsb1f"]
+
+[node name="JoseMaria" type="Node3D"]
+
+[node name="TerrainExport" parent="." instance=ExtResource("1_rsb1f")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0622268, 0, 0.191941)

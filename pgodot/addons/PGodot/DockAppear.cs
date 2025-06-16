@@ -11,7 +11,6 @@ public partial class DockAppear : EditorPlugin
     private EndlessTerrain endlessTerrain;
 
     // UI Controls
-    private Button btnUpdate;
     private Button btnExportScene;
     private HSlider sliderFrequency;
     private HSlider sliderOctaves;
@@ -80,14 +79,6 @@ public partial class DockAppear : EditorPlugin
         var vbox = new VBoxContainer();
         vbox.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
         mainPanelInstance.AddChild(vbox);
-
-        // Update Button
-        btnUpdate = new Button
-        {
-            Text = "Update Terrain",
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        vbox.AddChild(btnUpdate);
 
         // Export Scene Button
         btnExportScene = new Button
@@ -201,7 +192,6 @@ public partial class DockAppear : EditorPlugin
 
     private void ConnectSignals()
     {
-        btnUpdate.Pressed += OnUpdatePressed;
         btnEditGradient.Pressed += OnEditGradientPressed;
         btnExportScene.Pressed += OnExportScenePressed;
 
@@ -423,81 +413,89 @@ public partial class DockAppear : EditorPlugin
 
         if (editedSceneRoot == null)
         {
-            GD.PrintErr("No scene is currently open");
+            GD.PrintErr("No hay escena abierta actualmente");
             return;
         }
 
-        // Create a root node for the exported scene
-        Node exportRoot = new Node3D();
-        exportRoot.Name = "ExportedTerrainScene";
-
-        // Find and duplicate the TerrainGenerator
+        // Buscar el TerrainGenerator en la escena
         Node terrainGeneratorNode = editedSceneRoot.FindChild("TerrainGenerator", true, false) as Node;
-        if (terrainGeneratorNode != null)
+
+        if (terrainGeneratorNode == null)
         {
-            Node terrainCopy = terrainGeneratorNode.Duplicate();
-            exportRoot.AddChild(terrainCopy);
-            terrainCopy.Owner = exportRoot;
+            GD.PrintErr("No se encontró el nodo TerrainGenerator en la escena");
+            return;
+        }
+
+        // Crear nodo raíz para la escena exportada
+        Node3D exportRoot = new Node3D();
+        exportRoot.Name = "TerrainExport";
+
+        // Función recursiva para duplicar nodo con todos sus hijos
+        void DuplicateNodeHierarchy(Node original, Node parent)
+        {
+            Node duplicate = original.Duplicate();
+            parent.AddChild(duplicate);
+            duplicate.Owner = exportRoot;
+
+            foreach (Node child in original.GetChildren())
+            {
+                DuplicateNodeHierarchy(child, duplicate);
+            }
+        }
+
+        // Duplicar el TerrainGenerator y su jerarquía completa
+        DuplicateNodeHierarchy(terrainGeneratorNode, exportRoot);
+
+        // 4. Exportar EndlessTerrain (solo el nodo principal)
+        Node endlessTerrain = editedSceneRoot.FindChild("EndlessTerrain", true, false);
+        if (endlessTerrain != null)
+        {
+            Node endlessCopy = endlessTerrain.Duplicate();
+            exportRoot.AddChild(endlessCopy);
+            endlessCopy.Owner = exportRoot;
+            GD.Print("EndlessTerrain exportado");
         }
         else
         {
-            GD.PrintErr("TerrainGenerator node not found in the scene");
+            GD.Print("⚠️ EndlessTerrain no encontrado (exportando sin él)");
         }
 
-        // Find and duplicate the EndlessTerrain
-        Node endlessTerrainNode = editedSceneRoot.FindChild("EndlessTerrain", true, false) as Node;
-        if (endlessTerrainNode != null)
+        // 5. Exportar Player (solo el nodo principal)
+        Node player = editedSceneRoot.FindChild("Player", true, false);
+        if (player != null)
         {
-            Node endlessTerrainCopy = endlessTerrainNode.Duplicate();
-            exportRoot.AddChild(endlessTerrainCopy);
-            endlessTerrainCopy.Owner = exportRoot;
-        }
-        else
-        {
-            GD.Print("EndlessTerrain node not found in the scene - exporting without endless terrain");
-        }
-
-        // Find and duplicate the Player
-        Node playerNode = editedSceneRoot.FindChild("Player", true, false) as Node;
-        if (playerNode != null)
-        {
-            Node playerCopy = playerNode.Duplicate();
+            Node playerCopy = player.Duplicate();
             exportRoot.AddChild(playerCopy);
             playerCopy.Owner = exportRoot;
+            GD.Print("Player exportado");
         }
         else
         {
-            GD.Print("Player node not found in the scene - exporting without player");
+            GD.Print("⚠️ Player no encontrado (exportando sin él)");
         }
 
-        // Specify export path
+        // 6. Guardar la escena
         string exportPath = "res://addons/PGodot/TerrainsGenerated/";
-        string sceneName = $"TerrainExport_{DateTime.Now:yyyyMMdd_HHmmss}.tscn";
+        string fileName = $"TerrainExport_{DateTime.Now:yyyyMMdd_HHmmss}.tscn";
 
-        // Create directory if it doesn't exist
         if (!DirAccess.DirExistsAbsolute(exportPath))
         {
             DirAccess.MakeDirRecursiveAbsolute(exportPath);
         }
 
-        // Create and save the new scene
         PackedScene packedScene = new PackedScene();
         packedScene.Pack(exportRoot);
 
-        Error error = ResourceSaver.Save(packedScene, exportPath + sceneName);
-
-        if (error == Error.Ok)
+        if (ResourceSaver.Save(packedScene, exportPath + fileName) == Error.Ok)
         {
-            GD.Print($"Scene exported successfully to: {exportPath + sceneName}");
-            // Refresh the file system to make the new scene visible in the editor
+            GD.Print($"✅ Escena guardada en: {exportPath + fileName}");
             EditorInterface.Singleton.GetResourceFilesystem().Scan();
         }
         else
         {
-            GD.PrintErr($"Failed to export scene. Error: {error}");
+            GD.PrintErr("❌ Error al guardar la escena");
         }
 
-        // Clean up
         exportRoot.QueueFree();
     }
     public override void _ExitTree()
