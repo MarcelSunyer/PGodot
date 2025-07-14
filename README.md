@@ -4,6 +4,8 @@
 
 Built as part of a bachelor thesis at the CITM (UPC), PGodot is intended to streamline world-building and empower creators to generate replayable, diverse levels effortlessly. The long-term vision is to grow this plugin with community support and have it integrated natively into future versions of Godot.
 
+<img width="1080" height="527" alt="image" src="https://github.com/user-attachments/assets/ab62faed-2ec0-4b13-b169-6430488afa01" />
+
 ---
 
 ## ✨ Features
