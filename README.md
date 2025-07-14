@@ -1,5 +1,7 @@
 # PGodot – Procedural Generation Tool for Godot
 
+<img width="644" height="229" alt="Proyecto nuevo (74) (1)" src="https://github.com/user-attachments/assets/a00a8d6b-84df-4a58-bcaa-f25e0b14f229" />
+
 **PGodot** is a free and open-source procedural generation plugin for the Godot Engine. It enables developers to create dynamic 3D environments using noise-based techniques, directly from the editor or at runtime. This tool was developed with indie studios and solo devs in mind, offering procedural power without the complexity or price of commercial alternatives.
 
 Built as part of a bachelor thesis at the CITM (UPC), PGodot is intended to streamline world-building and empower creators to generate replayable, diverse levels effortlessly. The long-term vision is to grow this plugin with community support and have it integrated natively into future versions of Godot.
